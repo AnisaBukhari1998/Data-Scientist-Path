@@ -1,0 +1,730 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-main: var(--bg);
+  --color-bg-raise: var(--bg-raise);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border-line: var(--line);
+  --color-border-strong: var(--line-strong);
+  
+  --color-text-main: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-text-faint: var(--text-faint);
+
+  --color-phase-amber: var(--amber);
+  --color-phase-teal: var(--teal);
+  --color-phase-brick: var(--brick);
+  --color-phase-violet: var(--violet);
+  --color-phase-rose: var(--rose);
+  --color-phase-gold: var(--gold);
+
+  --font-sans: var(--font-sans-val, 'Inter', sans-serif);
+  --font-display: var(--font-display-val, 'Space Grotesk', sans-serif);
+  --font-mono: var(--font-mono-val, 'JetBrains Mono', monospace);
+  --font-code: 'Fira Code', 'JetBrains Mono', monospace;
+}
+
+/* ================================================================
+   BASE LAYER — Color palette, typography
+   ================================================================ */
+@layer base {
+  :root {
+    --font-scale: 1;
+    --font-sans-val: 'Inter', sans-serif;
+    --font-display-val: 'Space Grotesk', sans-serif;
+    --font-mono-val: 'JetBrains Mono', monospace;
+
+    /* ---- 1. Light Default Theme ---- */
+    --bg: #f8f7ff;
+    --bg-raise: #f0eef8;
+    --surface: #ffffff;
+    --surface-hover: #f5f3fd;
+    --line: rgba(120, 100, 180, 0.08);
+    --line-strong: rgba(120, 100, 180, 0.18);
+    --text: #2d2645;
+    --text-dim: #6b6085;
+    --text-faint: #a098b5;
+    --amber: #e8a87c;
+    --teal: #7bc8c4;
+    --brick: #d4849a;
+    --violet: #9b8ec4;
+    --rose: #c490b0;
+    --gold: #d4b87c;
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --glass-shadow: 0 8px 32px rgba(120, 100, 180, 0.08);
+    --grid-opacity: 0.04;
+  }
+
+  /* ---- Font Styling Classes ---- */
+  :root.font-inter {
+    --font-sans-val: 'Inter', sans-serif;
+    --font-display-val: 'Inter', sans-serif;
+  }
+  :root.font-grotesk {
+    --font-sans-val: 'Space Grotesk', sans-serif;
+    --font-display-val: 'Space Grotesk', sans-serif;
+  }
+  :root.font-outfit {
+    --font-sans-val: 'Outfit', sans-serif;
+    --font-display-val: 'Outfit', sans-serif;
+  }
+  :root.font-fira {
+    --font-sans-val: 'Fira Code', monospace;
+    --font-display-val: 'Space Grotesk', sans-serif;
+  }
+  :root.font-jetbrains {
+    --font-sans-val: 'JetBrains Mono', monospace;
+    --font-display-val: 'JetBrains Mono', monospace;
+  }
+
+  /* ---- 2. Dark Default Theme ---- */
+  .dark {
+    --bg: #13111c;
+    --bg-raise: #1a1726;
+    --surface: #211e30;
+    --surface-hover: #2a2640;
+    --line: rgba(180, 170, 220, 0.08);
+    --line-strong: rgba(180, 170, 220, 0.16);
+    --text: #e8e4f0;
+    --text-dim: #a098b8;
+    --text-faint: #6b6085;
+    --amber: #f0b890;
+    --teal: #8dd4d0;
+    --brick: #e09aac;
+    --violet: #b0a4d4;
+    --rose: #d4a8c4;
+    --gold: #e0c890;
+    --glass-bg: rgba(33, 30, 48, 0.65);
+    --glass-border: rgba(180, 170, 220, 0.12);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --grid-opacity: 0.03;
+  }
+
+  /* ---- 3. Cyberpunk Theme ---- */
+  .theme-cyberpunk {
+    --bg: #0b0813;
+    --bg-raise: #120e24;
+    --surface: #191435;
+    --surface-hover: #211a47;
+    --line: rgba(244, 63, 94, 0.15);
+    --line-strong: rgba(56, 189, 248, 0.25);
+    --text: #e0f2fe;
+    --text-dim: #38bdf8;
+    --text-faint: #f43f5e;
+    --amber: #fbbf24;
+    --teal: #22d3ee;
+    --brick: #f43f5e;
+    --violet: #c084fc;
+    --rose: #f472b6;
+    --gold: #fbbf24;
+    --glass-bg: rgba(25, 20, 53, 0.7);
+    --glass-border: rgba(56, 189, 248, 0.2);
+    --glass-shadow: 0 8px 32px rgba(244, 63, 94, 0.15);
+    --grid-opacity: 0.06;
+  }
+
+  /* ---- 4. Dracula Theme ---- */
+  .theme-dracula {
+    --bg: #282a36;
+    --bg-raise: #343746;
+    --surface: #44475a;
+    --surface-hover: #50546c;
+    --line: rgba(189, 147, 249, 0.15);
+    --line-strong: rgba(189, 147, 249, 0.3);
+    --text: #f8f8f2;
+    --text-dim: #6272a4;
+    --text-faint: #bd93f9;
+    --amber: #ffb86c;
+    --teal: #8be9fd;
+    --brick: #ff5555;
+    --violet: #bd93f9;
+    --rose: #ff79c6;
+    --gold: #f1fa8c;
+    --glass-bg: rgba(68, 71, 90, 0.75);
+    --glass-border: rgba(189, 147, 249, 0.18);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --grid-opacity: 0.03;
+  }
+
+  /* ---- 5. Nord Ice Theme ---- */
+  .theme-nord {
+    --bg: #2e3440;
+    --bg-raise: #3b4252;
+    --surface: #434c5e;
+    --surface-hover: #4c566a;
+    --line: rgba(136, 192, 208, 0.15);
+    --line-strong: rgba(136, 192, 208, 0.3);
+    --text: #eceff4;
+    --text-dim: #d8dee9;
+    --text-faint: #81a1c1;
+    --amber: #ebcb8b;
+    --teal: #88c0d0;
+    --brick: #bf616a;
+    --violet: #b48ead;
+    --rose: #b48ead;
+    --gold: #ebcb8b;
+    --glass-bg: rgba(67, 76, 94, 0.75);
+    --glass-border: rgba(136, 192, 208, 0.15);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    --grid-opacity: 0.02;
+  }
+
+  /* ---- 6. Tokyo Night Theme ---- */
+  .theme-tokyo-night {
+    --bg: #1a1b26;
+    --bg-raise: #1f2335;
+    --surface: #24283c;
+    --surface-hover: #2e344e;
+    --line: rgba(122, 162, 247, 0.15);
+    --line-strong: rgba(187, 154, 247, 0.25);
+    --text: #a9b1d6;
+    --text-dim: #565f89;
+    --text-faint: #7aa2f7;
+    --amber: #e0af68;
+    --teal: #7dcfff;
+    --brick: #f7768e;
+    --violet: #bb9af7;
+    --rose: #ff007f;
+    --gold: #e0af68;
+    --glass-bg: rgba(36, 40, 60, 0.75);
+    --glass-border: rgba(122, 162, 247, 0.15);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    --grid-opacity: 0.04;
+  }
+
+  /* ---- 7. Sunset Glow Theme ---- */
+  .theme-sunset {
+    --bg: #fff8f5;
+    --bg-raise: #ffeedf;
+    --surface: #ffffff;
+    --surface-hover: #fff3ea;
+    --line: rgba(244, 91, 105, 0.1);
+    --line-strong: rgba(244, 91, 105, 0.2);
+    --text: #451b0f;
+    --text-dim: #9c4c34;
+    --text-faint: #d76a4f;
+    --amber: #f3a261;
+    --teal: #2a9d8f;
+    --brick: #e76f51;
+    --violet: #8338ec;
+    --rose: #ff006e;
+    --gold: #e7c169;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(244, 91, 105, 0.15);
+    --glass-shadow: 0 8px 32px rgba(244, 91, 105, 0.06);
+    --grid-opacity: 0.05;
+  }
+
+  /* ---- 8. Forest Emerald Theme ---- */
+  .theme-forest {
+    --bg: #f3f6f3;
+    --bg-raise: #e2ede4;
+    --surface: #ffffff;
+    --surface-hover: #ebf5ee;
+    --line: rgba(46, 125, 50, 0.08);
+    --line-strong: rgba(46, 125, 50, 0.18);
+    --text: #1b3322;
+    --text-dim: #437050;
+    --text-faint: #609971;
+    --amber: #ff9800;
+    --teal: #2e7d32;
+    --brick: #c62828;
+    --violet: #6a1b9a;
+    --rose: #ad1457;
+    --gold: #f9a825;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(46, 125, 50, 0.12);
+    --glass-shadow: 0 8px 32px rgba(46, 125, 50, 0.05);
+    --grid-opacity: 0.04;
+  }
+
+  /* ---- 9. Midnight Theme ---- */
+  .theme-midnight {
+    --bg: #090a0f;
+    --bg-raise: #0f111a;
+    --surface: #141724;
+    --surface-hover: #1b1f30;
+    --line: rgba(56, 189, 248, 0.1);
+    --line-strong: rgba(139, 92, 246, 0.2);
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
+    --text-faint: #475569;
+    --amber: #f59e0b;
+    --teal: #10b981;
+    --brick: #ef4444;
+    --violet: #8b5cf6;
+    --rose: #ec4899;
+    --gold: #eab308;
+    --glass-bg: rgba(20, 23, 36, 0.85);
+    --glass-border: rgba(56, 189, 248, 0.12);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --grid-opacity: 0.03;
+  }
+
+  /* ---- 10. Solarized Theme ---- */
+  .theme-solarized {
+    --bg: #fdf6e3;
+    --bg-raise: #eee8d5;
+    --surface: #fdf6e3;
+    --surface-hover: #eee8d5;
+    --line: rgba(101, 123, 131, 0.12);
+    --line-strong: rgba(42, 161, 152, 0.22);
+    --text: #073642;
+    --text-dim: #586e75;
+    --text-faint: #93a1a1;
+    --amber: #cb4b16;
+    --teal: #2aa198;
+    --brick: #dc322f;
+    --violet: #6c71c4;
+    --rose: #d33682;
+    --gold: #b58900;
+    --glass-bg: rgba(253, 246, 227, 0.7);
+    --glass-border: rgba(101, 123, 131, 0.15);
+    --glass-shadow: 0 8px 32px rgba(101, 123, 131, 0.08);
+    --grid-opacity: 0.05;
+  }
+
+  /* ---- 11. Rose Gold Theme ---- */
+  .theme-rose-gold {
+    --bg: #fffbfb;
+    --bg-raise: #faeff0;
+    --surface: #ffffff;
+    --surface-hover: #fcf4f5;
+    --line: rgba(196, 144, 176, 0.1);
+    --line-strong: rgba(196, 144, 176, 0.22);
+    --text: #4a343b;
+    --text-dim: #8c5d6f;
+    --text-faint: #b38899;
+    --amber: #dfa076;
+    --teal: #78c0b9;
+    --brick: #cc7889;
+    --violet: #a291b5;
+    --rose: #c490b0;
+    --gold: #d9ad7e;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(196, 144, 176, 0.15);
+    --glass-shadow: 0 8px 32px rgba(196, 144, 176, 0.06);
+    --grid-opacity: 0.04;
+  }
+
+  /* ---- 12. Cyber Mint Theme ---- */
+  .theme-cyber-mint {
+    --bg: #090f0e;
+    --bg-raise: #0f1917;
+    --surface: #142220;
+    --surface-hover: #1c302d;
+    --line: rgba(56, 189, 248, 0.1);
+    --line-strong: rgba(45, 212, 191, 0.25);
+    --text: #f0fdfa;
+    --text-dim: #2dd4bf;
+    --text-faint: #f43f5e;
+    --amber: #fbbf24;
+    --teal: #2dd4bf;
+    --brick: #f43f5e;
+    --violet: #a78bfa;
+    --rose: #fb7185;
+    --gold: #fbbf24;
+    --glass-bg: rgba(20, 34, 32, 0.85);
+    --glass-border: rgba(45, 212, 191, 0.15);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    --grid-opacity: 0.05;
+  }
+
+  body {
+    background:
+      linear-gradient(rgba(120, 100, 180, var(--grid-opacity)) 1px, transparent 1px) 0 0/100% 32px,
+      linear-gradient(90deg, rgba(120, 100, 180, var(--grid-opacity)) 1px, transparent 1px) 0 0/32px 100%,
+      var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: calc(16px * var(--font-scale));
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  code, pre, kbd, samp {
+    font-family: var(--font-code);
+  }
+}
+
+/* ================================================================
+   UTILITIES LAYER — Animations, flat-card, 3D transforms
+   ================================================================ */
+@layer utilities {
+  /* ---- Existing animation utilities (enhanced) ---- */
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out both;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* ---- New animation utilities ---- */
+  .animate-slide-in-left {
+    animation: slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+    background-size: 200% 100%;
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  .animate-bounce-in {
+    animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .animate-flip-in {
+    animation: flipIn 0.6s ease-out both;
+    perspective: 800px;
+  }
+
+  .animate-gradient-shift {
+    animation: gradientShift 4s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  .animate-shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  .animate-progress-ring {
+    animation: progressFill 1.5s ease-out forwards;
+  }
+
+  /* ---- Stagger delay utilities ---- */
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.10s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.20s; }
+  .stagger-5 { animation-delay: 0.25s; }
+  .stagger-6 { animation-delay: 0.30s; }
+  .stagger-7 { animation-delay: 0.35s; }
+  .stagger-8 { animation-delay: 0.40s; }
+
+  /* ---- Flat Card utility ---- */
+  .flat-card {
+    background: var(--surface);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border-radius: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+  }
+  
+  .flat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+    background: var(--surface-hover);
+  }
+
+  /* ---- Glassmorphism utility ---- */
+  .glass {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* ---- 3D transform utilities ---- */
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
+
+/* ================================================================
+   KEYFRAMES — All animation definitions
+   ================================================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(155, 142, 196, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(155, 142, 196, 0.35);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes staggerIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes flipIn {
+  from {
+    opacity: 0;
+    transform: perspective(800px) rotateX(-80deg);
+  }
+  40% {
+    transform: perspective(800px) rotateX(10deg);
+  }
+  70% {
+    transform: perspective(800px) rotateX(-5deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(800px) rotateX(0deg);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translateX(-1px);
+  }
+  20%, 80% {
+    transform: translateX(2px);
+  }
+  30%, 50%, 70% {
+    transform: translateX(-3px);
+  }
+  40%, 60% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes progressFill {
+  from {
+    stroke-dashoffset: var(--progress-circumference);
+  }
+  to {
+    stroke-dashoffset: var(--progress-offset);
+  }
+}
+
+/* ================================================================
+   SMOOTH PAGE TRANSITIONS
+   ================================================================ */
+.page-enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 0.25s ease-in, transform 0.25s ease-in;
+}
+
+/* ================================================================
+   CUSTOM SCROLLBAR
+   ================================================================ */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
+
+/* ================================================================
+   GOOGLE TRANSLATE CUSTOM STYLING
+   ================================================================ */
+.goog-te-banner-frame {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
+/* Hide the "Powered by Google" text and logo */
+.goog-te-gadget {
+  color: transparent !important;
+  font-size: 0 !important;
+}
+.goog-te-gadget img,
+.goog-logo-link {
+  display: none !important;
+}
+/* Style the select dropdown to match our UI */
+.goog-te-combo {
+  font-family: var(--font-display) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text) !important;
+  background-color: var(--surface) !important;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  outline: none !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23a098b5%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 16px !important;
+  padding-right: 32px !important;
+  width: 100% !important;
+  transition: all 0.2s ease !important;
+}
+.goog-te-combo:hover {
+  border-color: var(--amber) !important;
+  background-color: var(--surface-hover) !important;
+}
+/* Focus state for accessibility */
+.goog-te-combo:focus {
+  border-color: var(--amber) !important;
+  box-shadow: 0 0 0 2px rgba(232, 168, 124, 0.2) !important;
+}

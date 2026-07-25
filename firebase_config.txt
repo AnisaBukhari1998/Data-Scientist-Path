@@ -1,0 +1,10 @@
+{
+  "projectId": "data-sci-path-v2-543",
+  "appId": "1:964205692853:web:2290d0f28a34177d2efbfc",
+  "storageBucket": "data-sci-path-v2-543.firebasestorage.app",
+  "apiKey": "AIzaSyCT0YG1Cuup0ZSE59C_bTxOAfuwPuXYCRA",
+  "authDomain": "data-sci-path-v2-543.firebaseapp.com",
+  "messagingSenderId": "964205692853",
+  "projectNumber": "964205692853",
+  "version": "2"
+}

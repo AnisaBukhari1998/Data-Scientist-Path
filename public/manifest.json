@@ -1,0 +1,16 @@
+{
+  "short_name": "DS Path",
+  "name": "Data Scientist Roadmap",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#13111c",
+  "theme_color": "#9b8ec4",
+  "display": "standalone",
+  "orientation": "portrait"
+}
