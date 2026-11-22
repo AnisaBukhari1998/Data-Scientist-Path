@@ -1,16 +1,34 @@
-# React + Vite
+# Data Scientist Path
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A self-paced data science learning app that organizes **free, legally available** courses, books, videos and practice sites into a structured roadmap, with progress tracking, flashcards, quizzes, a Python/SQL sandbox, mock interviews and portfolio tools.
 
-Currently, two official plugins are available:
+## Roadmap
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Phase | Focus |
+| --- | --- |
+| 1 — Foundations | Python, math, SQL, statistics |
+| 2 — Core ML | Classical machine learning and model pipelines |
+| 3 — Deep Learning & Deployment | Neural networks, NLP, shipping models |
+| 4 — Capstone & Job Readiness | Portfolio projects, interview prep |
+| 5 — AI Engineering, MLOps & GenAI | Explainability, deployment, RAG, agents |
 
-## React Compiler
+All resources live in [`src/data/roadmap.js`](src/data/roadmap.js).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Resource policy
 
-## Expanding the Oxlint configuration
+- Only link to resources that are free to use (free courses, audit tracks, official free editions of books).
+- Books are **never** bundled in this repository. A book entry links to the author's or publisher's free edition ("Read Free"), or, for paid books, to an [Open Library](https://openlibrary.org/) search where it can be borrowed ("Find Book").
+- Progress is stored by item position, so **add new resources to the end of a section** rather than inserting or reordering, to keep learners' saved progress intact.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Development
+
+```bash
+npm install
+npm run dev       # http://localhost:5173
+npm run lint
+npm run build
+```
+
+Desktop builds use Electron: `npm run electron:dev`, `npm run electron:build` (macOS), `npm run electron:build:win`.
+
+Authentication, sync and the AI tutor use Firebase (see `src/firebase.js`, `firestore.rules`).

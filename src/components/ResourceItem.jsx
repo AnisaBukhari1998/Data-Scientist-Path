@@ -1441,10 +1441,10 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
           />
         </button>
 
-        {/* External link / Book reader */}
+        {/* External link (books open the author's free edition or a library search) */}
         {url && (
-          type === 'books' ? (
-            <button 
+          type === 'books' && url.startsWith('/') ? (
+            <button
               onClick={() => openPdf(url, title)}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold font-mono bg-phase-teal/15 text-phase-teal hover:bg-phase-teal hover:text-white border border-phase-teal/25 transition-all duration-200 cursor-pointer"
               title="Read Book in App"
@@ -1453,14 +1453,14 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
               <BookIcon size={12} />
             </button>
           ) : (
-            <a 
-              href={url} 
-              target="_blank" 
+            <a
+              href={url}
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold font-mono bg-phase-teal/15 text-phase-teal hover:bg-phase-teal hover:text-white border border-phase-teal/25 transition-all duration-200 cursor-pointer"
-              title="Open Resource"
+              title={type === 'books' ? (url.includes('openlibrary.org') ? 'Find this book at Open Library' : 'Read the free edition from the author') : 'Open Resource'}
             >
-              <span>Open</span>
+              <span>{type === 'books' ? (url.includes('openlibrary.org') ? 'Find Book' : 'Read Free') : 'Open'}</span>
               <ExternalLink size={12} />
             </a>
           )
