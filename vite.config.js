@@ -8,7 +8,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
+  // Root-relative so deep links like /phase/phase1 resolve assets correctly.
+  // Electron serves dist/ from a local HTTP server at /, so this works there too.
+  base: '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
