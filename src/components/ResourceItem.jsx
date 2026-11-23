@@ -8,6 +8,7 @@ import {
 import { ReadmeGenerator } from './ReadmeGenerator';
 import { ProjectComments } from './ProjectComments';
 import { getSameAs } from '../utils/sameAs';
+import { VerdictBadge } from './VerdictBadge';
 
 function getResourceTime(item, type) {
   if (!Array.isArray(item)) return '10h';
@@ -1073,6 +1074,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
               ⏱ {time}
             </span>
           )}
+          {type === 'projects' && <VerdictBadge phaseKey={phaseKey} index={index} showTip />}
 
           {/* Note indicator (small icon if note exists but editor is closed) */}
           {existingNote && !showNoteInput && (
@@ -1088,7 +1090,8 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
         
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-text-dim">
           <span className="font-medium">{source}</span>
-          {details && (
+          {/* For projects, item[2] is the difficulty, already shown as a badge above */}
+          {details && details !== difficulty && (
             <>
               <span className="hidden sm:inline text-text-faint">•</span>
               <span className="font-mono text-[10.5px] uppercase tracking-wider px-2 py-0.5 bg-bg-raise text-phase-teal rounded-md">{details}</span>
