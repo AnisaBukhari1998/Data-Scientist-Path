@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAI, GoogleAIBackend } from "firebase/ai";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCT0YG1Cuup0ZSE59C_bTxOAfuwPuXYCRA",
@@ -14,13 +15,37 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// App Check: proves requests come from this app (not someone copying the config above),
+// so other people can't spend the Gemini quota. The reCAPTCHA Enterprise site key is
+// public; it is read from VITE_RECAPTCHA_SITE_KEY (see .env.example).
+// During `npm run dev`, a debug token is printed in the browser console instead; register
+// it once in the Firebase console (App Check > Apps > Manage debug tokens).
+const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+if (import.meta.env.DEV) {
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_APPCHECK_DEBUG_TOKEN || true;
+}
+export let appCheck = null;
+if (recaptchaSiteKey || import.meta.env.DEV) {
+  try {
+    appCheck = initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(recaptchaSiteKey || 'debug-only'),
+      isTokenAutoRefreshEnabled: true,
+    });
+  } catch (err) {
+    console.error("Failed to initialize App Check:", err);
+  }
+} else {
+  console.warn("App Check is off: set VITE_RECAPTCHA_SITE_KEY before building for production.");
+}
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 // Initialize Firebase AI Logic (Gemini via Google AI backend — free tier)
 export let ai = null;
 try {
-  ai = getAI(app, { backend: new GoogleAIBackend() });
+  // Limited-use tokens are single-use, which makes replaying a captured request harder.
+  ai = getAI(app, { backend: new GoogleAIBackend(), useLimitedUseAppCheckTokens: true });
 } catch (err) {
   console.error("Failed to initialize Firebase AI Logic:", err);
 }
