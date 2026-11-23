@@ -890,7 +890,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
   return (
     <>
     <div 
-      className={`group relative flex items-start gap-4 p-4 rounded-xl transition-all duration-200 
+      className={`group relative grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 sm:flex sm:items-start sm:gap-4 p-4 rounded-xl transition-all duration-200 
         ${completed 
           ? 'border-l-3 border-l-phase-teal/60 bg-phase-teal/[0.03]' 
           : 'border-l-3 border-l-transparent hover:bg-surface-hover hover:shadow-lg'
@@ -901,7 +901,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
       {/* Completion toggle */}
       <button 
         onClick={() => toggleItem(phaseKey, category, index, totalSubModules)}
-        className="mt-0.5 flex-shrink-0 focus:outline-none transition-transform active:scale-90"
+        className="col-start-1 row-start-1 sm:mt-0.5 flex-shrink-0 focus:outline-none transition-transform active:scale-90"
       >
         {completed ? (
           <CheckCircle2 size={20} className="text-phase-teal transition-colors" />
@@ -910,7 +910,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
         )}
       </button>
 
-      <div className={`flex-1 min-w-0 transition-opacity`}>
+      <div className={`col-span-2 row-start-2 sm:flex-1 min-w-0 transition-opacity`}>
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <h4 className="font-semibold text-[15px] text-text-main">{title}</h4>
           {difficulty && (
@@ -1177,7 +1177,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
                     placeholder="Paste Coursera, edX, or Udemy certificate link..."
                     value={resourceUrlInput}
                     onChange={(e) => setResourceUrlInput(e.target.value)}
-                    className="flex-1 text-xs bg-surface border border-border-line rounded-md px-2.5 py-1 text-text-main focus:outline-none focus:border-phase-teal focus:ring-1 focus:ring-phase-teal/30"
+                    className="flex-1 min-w-0 text-xs bg-surface border border-border-line rounded-md px-2.5 py-1 text-text-main focus:outline-none focus:border-phase-teal focus:ring-1 focus:ring-phase-teal/30"
                   />
                   <button
                     onClick={handleSaveResourceLink}
@@ -1226,8 +1226,8 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
         )}
       </div>
 
-      {/* Right-side actions: bookmark + note toggle + external link */}
-      <div className="flex items-center gap-1 flex-shrink-0">
+      {/* Actions: bookmark + note toggle + external link (top-right row on phones, right column from sm up) */}
+      <div className="col-start-2 row-start-1 justify-self-end flex items-center gap-1 flex-shrink-0">
         {/* Add Note button */}
         {!showNoteInput && (
           <button
@@ -1235,7 +1235,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
             className={`p-2 rounded-lg transition-colors
               ${existingNote 
                 ? 'text-phase-violet/70 hover:text-phase-violet hover:bg-phase-violet/10'
-                : 'text-text-faint/0 group-hover:text-text-faint hover:text-phase-violet hover:bg-bg-raise'
+                : 'text-text-faint sm:text-text-faint/0 group-hover:text-text-faint hover:text-phase-violet hover:bg-bg-raise'
               }`}
             title={existingNote ? 'Edit note' : 'Add note'}
           >
@@ -1249,7 +1249,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
           className={`p-2 rounded-lg transition-all duration-200
             ${bookmarked
               ? 'text-amber-400 hover:text-amber-500'
-              : 'text-text-faint/0 group-hover:text-text-faint hover:text-amber-400 hover:bg-bg-raise'
+              : 'text-text-faint sm:text-text-faint/0 group-hover:text-text-faint hover:text-amber-400 hover:bg-bg-raise'
             }`}
           title={bookmarked ? 'Remove bookmark' : 'Bookmark'}
         >
