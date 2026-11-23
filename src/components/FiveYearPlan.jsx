@@ -191,7 +191,7 @@ export function FiveYearPlan() {
                         </div>
                         {item.detail && <p className="text-[11px] text-text-faint truncate">{item.detail}</p>}
                         {original && (
-                          <p className="text-[11px] text-text-dim">Repeats “{original.title}”, so it adds no extra study time.</p>
+                          <p className="text-[11px] text-text-dim">Same as “{original.title}”, so it adds no extra study time.</p>
                         )}
                       </div>
                       <div className="text-right shrink-0">

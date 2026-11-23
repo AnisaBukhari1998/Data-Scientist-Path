@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { ReadmeGenerator } from './ReadmeGenerator';
 import { ProjectComments } from './ProjectComments';
+import { getSameAs } from '../utils/sameAs';
 
 function getResourceTime(item, type) {
   if (!Array.isArray(item)) return '10h';
@@ -1013,6 +1014,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
   
   // Calculate estimated study duration dynamically
   const time = getResourceTime(item, type);
+  const sameAs = getSameAs(phaseKey, category, index);
 
   // Parse difficulty based on actual array structure length
   let difficulty = 'Beginner';
@@ -1093,6 +1095,13 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
             </>
           )}
         </div>
+
+        {/* Repeated entry: point to the original so it isn't studied twice */}
+        {sameAs && (
+          <p className="mt-1.5 text-xs text-text-dim">
+            <span className="font-semibold text-phase-violet">Same as</span> “{sameAs.title}” ({sameAs.typeLabel}, Phase {sameAs.phaseId}), so there is no need to study it twice.
+          </p>
+        )}
         
         {/* Granular progress bar meter (exclude projects) */}
         {type !== 'projects' && (
