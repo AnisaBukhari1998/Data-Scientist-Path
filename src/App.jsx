@@ -604,14 +604,15 @@ function AppContent() {
 
       {/* ═══════ Bottom Tab Bar (Mobile) ═══════ */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 glass border-t border-border-line flex justify-around py-2 px-1 z-30">
-        {NAV_ITEMS.slice(0, 4).map(({ to, icon: Icon, label, color }) => {
+        {/* First 5 menu items: adding 5-Year Plan would otherwise push Flashcards off the bar */}
+        {NAV_ITEMS.slice(0, 5).map(({ to, icon: Icon, label, color }) => {
           const active = isActiveRoute(to);
           return (
             <Link
               key={to}
               to={to}
               className={`
-                flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200
+                flex flex-col items-center gap-0.5 px-1.5 py-1.5 rounded-xl transition-all duration-200 min-w-0
                 ${active
                   ? `${PHASE_TEXT_COLORS[color] || 'text-text-main'} scale-105`
                   : 'text-text-faint hover:text-text-dim'
