@@ -263,6 +263,7 @@ export const PHASES = [
       ['Kaggle competition/leaderboard badges','From comps entered', 'https://www.kaggle.com/', 'Intermediate', '40h', 0],
       ['freeCodeCamp Data Analysis with Python Certification','freeCodeCamp — free', 'https://www.freecodecamp.org/learn/data-analysis-with-python/', 'Intermediate', '30h', 0],
       ['MLOps Specialization certificate','Coursera — audit', 'https://www.coursera.org/specializations/machine-learning-engineering-for-production-mlops', 'Advanced', '60h', 0],
+      ['Microsoft Power BI Data Analyst Professional Certificate','Coursera · Microsoft — 8 courses, prepares for the PL-300 exam', 'https://www.coursera.org/professional-certificates/microsoft-power-bi-data-analyst', 'Beginner', '200h', 0],
     ],
     projects:[
       ['Full End-to-End Capstone','Real-world problem: ingestion → modeling → deployment → dashboard', 'Advanced', '60h', 0],

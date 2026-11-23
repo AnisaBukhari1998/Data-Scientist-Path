@@ -219,6 +219,7 @@ export const PLAN_SCHEDULE = {
   'phase4.certs.2': {"p": "Y1"},
   'phase4.certs.3': {"p": "Y5", "same": "phase1.courses.15"},
   'phase4.certs.4': {"p": "Y3", "same": "phase3.courses.4"},
+  'phase4.certs.5': {"p": "P0", "coursera": true},
   'phase4.projects.0': {"p": "Y3"},
   'phase4.projects.1': {"p": "P0"},
   'phase4.projects.2': {"p": "Y1"},
