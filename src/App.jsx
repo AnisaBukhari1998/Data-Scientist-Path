@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 
 /* ── Eager: always-mounted shell chrome + the default "/" landing page ── */
 import { StreakCalendar } from './components/StreakCalendar';
-import { CertificateGenerator } from './components/CertificateGenerator';
 import { ThemeToggle } from './components/ThemeToggle';
 import { CircularProgress } from './components/CircularProgress';
 import { Avatar3D } from './components/Avatar3D';
@@ -48,7 +47,6 @@ const PythonTerminal = lazy(() => import('./components/PythonTerminal').then(m =
 const MasterCapstone = lazy(() => import('./components/MasterCapstone').then(m => ({ default: m.MasterCapstone })));
 const Community = lazy(() => import('./components/Community').then(m => ({ default: m.Community })));
 const PortfolioGenerator = lazy(() => import('./components/PortfolioGenerator').then(m => ({ default: m.PortfolioGenerator })));
-const VerifyCertificate = lazy(() => import('./components/VerifyCertificate').then(m => ({ default: m.VerifyCertificate })));
 const ArchitectureCanvas = lazy(() => import('./components/ArchitectureCanvas').then(m => ({ default: m.ArchitectureCanvas })));
 const Leaderboard = lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
 const GlobalMap = lazy(() => import('./components/GlobalMap').then(m => ({ default: m.GlobalMap })));
@@ -646,7 +644,6 @@ function AppContent() {
               <Route path="/capstone" element={<MasterCapstone />} />
               <Route path="/community" element={<Community />} />
               <Route path="/portfolio" element={<PortfolioGenerator />} />
-              <Route path="/verify" element={<VerifyCertificate />} />
               <Route path="/architecture" element={<ArchitectureCanvas />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/map" element={<GlobalMap />} />
@@ -757,7 +754,7 @@ function Roadmap() {
             Welcome back, {currentUser?.displayName || progress._githubUser?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Data Science Scholar')}! 🚀
           </h1>
           <p className="text-sm text-text-dim max-w-xl leading-relaxed">
-            Customize HSL themes, review code models, complete phase challenges, and unlock verified certificates.
+            Customize HSL themes, review code models, complete phase challenges, and build a portfolio of real projects.
           </p>
           <div className="flex flex-wrap gap-3 items-center justify-center md:justify-start">
             <span className="text-xs font-semibold text-phase-violet bg-phase-violet/10 border border-phase-violet/25 px-2.5 py-1 rounded-lg">
@@ -891,11 +888,6 @@ function Roadmap() {
             </Link>
           );
         })}
-      </div>
-
-      {/* Certificate Generator */}
-      <div className="animate-slide-up stagger-6">
-        <CertificateGenerator isCompleted={PHASES.every(p => progress[p.key]?.quizPassed)} />
       </div>
     </div>
   );

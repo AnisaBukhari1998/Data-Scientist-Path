@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { StreakCalendar } from './StreakCalendar';
 import { Avatar3D } from './Avatar3D';
 import { 
-  Award, Shield, Flame, Clock, BrainCircuit, CheckCircle2, 
-  Target, Briefcase, Globe, Lock, Settings, User, Sparkles, Trophy, BookOpen, ExternalLink, ChevronRight, Palette, FileText
+  Shield, Flame, Clock, BrainCircuit, CheckCircle2, 
+  Target, Briefcase, Globe, Lock, Settings, User, Sparkles, ExternalLink, ChevronRight, Palette, FileText
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ResumeBuilder } from './ResumeBuilder';
@@ -465,11 +465,11 @@ export function UserProfile() {
             </div>
           </div>
 
-          {/* Credentials and Verification badges */}
+          {/* CV builder */}
           <div className="flat-card p-6 border border-border-line space-y-4">
             <div className="flex justify-between items-center flex-wrap gap-2">
               <h3 className="text-sm font-mono text-text-faint uppercase tracking-wider flex items-center gap-1.5">
-                <Award size={16} className="text-phase-rose" /> Earned Certificates
+                <FileText size={16} className="text-phase-rose" /> Your CV
               </h3>
               <button
                 onClick={() => {
@@ -482,31 +482,9 @@ export function UserProfile() {
               </button>
             </div>
             
-            {getModulesCount() >= 10 ? (
-              <div className="p-4 bg-bg-raise rounded-xl border border-border-line flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-phase-gold/15 rounded-xl text-phase-gold">
-                    <Trophy size={24} />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-text-main">Data Science Pathway Master Certificate</h4>
-                    <p className="text-xs text-text-dim">Verified Program Certificate of completion</p>
-                  </div>
-                </div>
-                <Link 
-                  to="/verify"
-                  className="px-4 py-2 bg-phase-violet hover:bg-phase-violet/85 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
-                >
-                  <BookOpen size={14} /> View Certificate
-                </Link>
-              </div>
-            ) : (
-              <div className="p-5 border border-dashed border-border-line rounded-xl text-center text-xs text-text-faint py-8">
-                <Lock size={20} className="mx-auto text-text-faint mb-2" />
-                <p className="font-bold text-text-main">Academic Certificate Locked</p>
-                <p className="mt-1">Complete at least 10 curriculum items to unlock your Harvard/edX-style graduation certificate.</p>
-              </div>
-            )}
+            <p className="text-xs text-text-dim">
+              Turn your completed roadmap items and projects into a CV you can download and send to employers.
+            </p>
           </div>
         </div>
 
