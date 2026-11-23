@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Medal, Sparkles, Target, UserPlus, UserMinus, RefreshCw, AlertCircle } from 'lucide-react';
-import { collection, doc, onSnapshot, setDoc, deleteDoc, query, orderBy, limit } from 'firebase/firestore';
+import { collection, doc, onSnapshot, setDoc, deleteDoc, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useProgress } from '../context/ProgressContext';
 import { useAuth } from '../context/AuthContext';
@@ -62,11 +62,11 @@ export function Leaderboard() {
         level: userLevel,
         xp: totalUserXp,
         completed: completedCount,
-        updatedAt: Date.now(),
+        updatedAt: serverTimestamp(), // set by Firebase's clock, so it can't be faked
       });
     } catch (err) {
       console.error('Could not save leaderboard entry:', err);
-      setLoadError('Could not save your entry. Please try again.');
+      setLoadError('Could not save your entry. Scores can rise by at most 10 XP per minute since your last update, so try again a bit later.');
     } finally {
       setSaving(false);
     }

@@ -59,8 +59,8 @@ export function ProjectComments({ projectId }) {
     const commentData = {
       projectId,
       authorId: currentUser.uid,
-      authorName: currentUser.displayName || currentUser.email.split('@')[0],
-      content: newComment,
+      authorName: (currentUser.displayName || currentUser.email?.split('@')[0] || 'learner').slice(0, 60),
+      content: newComment.trim().slice(0, 2000),
       timestamp: serverTimestamp()
     };
 

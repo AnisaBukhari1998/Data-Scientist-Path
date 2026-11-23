@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { MessageSquare, Plus, Search, ChevronDown, ChevronUp, Send, Check, AlertCircle, HelpCircle, Tag, Clock, ExternalLink, Globe } from 'lucide-react';
 import { db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 import { collection, addDoc, onSnapshot, query, orderBy, where } from 'firebase/firestore';
 
 const DEFAULT_QUESTIONS = [
@@ -54,6 +55,8 @@ const StackOverflowIcon = (props) => (
 );
 
 export function Community() {
+  const { currentUser } = useAuth();
+  const authorName = (currentUser?.displayName || currentUser?.email?.split('@')[0] || 'learner').slice(0, 60);
   const [questions, setQuestions] = useState([]);
   const [activeAnswers, setActiveAnswers] = useState({});
   const [expandedQuestionId, setExpandedQuestionId] = useState(null);
@@ -136,6 +139,10 @@ export function Community() {
 
   const handlePostQuestion = async (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      setErrorMsg('Please sign in to post a question.');
+      return;
+    }
     if (!qTitle.trim() || !qContent.trim()) {
       setErrorMsg('Please enter a question title and details.');
       return;
@@ -146,10 +153,11 @@ export function Community() {
     setSuccessMsg(false);
 
     const questionData = {
-      title: qTitle.trim(),
-      content: qContent.trim(),
+      title: qTitle.trim().slice(0, 150),
+      content: qContent.trim().slice(0, 3000),
       tag: qTag,
-      author: 'self_learner',
+      author: authorName,
+      authorId: currentUser.uid,
       date: 'Just now',
       timestamp: Date.now(),
       answersCount: 0
@@ -183,11 +191,16 @@ export function Community() {
   const handlePostAnswer = async (e) => {
     e.preventDefault();
     if (!newAnswerText.trim() || !expandedQuestionId) return;
+    if (!currentUser) {
+      setErrorMsg('Please sign in to answer.');
+      return;
+    }
 
     const answerData = {
       questionId: expandedQuestionId,
-      author: 'self_learner',
-      content: newAnswerText.trim(),
+      author: authorName,
+      authorId: currentUser.uid,
+      content: newAnswerText.trim().slice(0, 2000),
       date: 'Just now',
       timestamp: Date.now()
     };
@@ -268,6 +281,7 @@ export function Community() {
                   <input
                     type="text"
                     placeholder="What are you stuck on?"
+                    maxLength={150}
                     value={qTitle}
                     onChange={(e) => setQTitle(e.target.value)}
                     className="w-full bg-bg-main border border-border-line rounded-xl px-3 py-2 text-sm text-text-main focus:outline-none focus:border-phase-violet"
@@ -296,6 +310,7 @@ export function Community() {
                 <label className="text-xs font-bold text-text-dim">Explain your query in detail</label>
                 <textarea
                   rows={4}
+                  maxLength={3000}
                   placeholder="Include error codes, package versions, context, or what solution paths you already tried..."
                   value={qContent}
                   onChange={(e) => setQContent(e.target.value)}
@@ -444,6 +459,7 @@ export function Community() {
                           <input
                             type="text"
                             placeholder="Write your answer..."
+                            maxLength={2000}
                             value={newAnswerText}
                             onChange={(e) => setNewAnswerText(e.target.value)}
                             className="flex-1 bg-surface border border-border-line rounded-xl px-4 py-2 text-xs text-text-main focus:outline-none focus:border-phase-violet"
