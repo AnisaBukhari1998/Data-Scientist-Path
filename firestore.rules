@@ -29,6 +29,24 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Success stories written by learners.
+    // Anyone can read them. Only a signed-in user can add one, under their own ID,
+    // with only the expected fields and reasonable lengths. Authors can delete
+    // their own story; nobody can edit one after it is posted.
+    match /success_stories/{storyId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['authorId', 'name', 'role', 'path', 'quote', 'img', 'timestamp'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
+        && request.resource.data.role is string && request.resource.data.role.size() > 0 && request.resource.data.role.size() <= 120
+        && request.resource.data.path is string && request.resource.data.path.size() <= 40
+        && request.resource.data.quote is string && request.resource.data.quote.size() > 0 && request.resource.data.quote.size() <= 1000
+        && request.resource.data.img is string && request.resource.data.img.size() <= 16
+        && request.resource.data.timestamp is int;
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    }
+
     // Community Forum / Posts
     match /community_posts/{postId} {
       allow read: if request.auth != null;

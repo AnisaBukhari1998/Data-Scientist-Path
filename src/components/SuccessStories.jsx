@@ -1,38 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Award, Briefcase, Star, MessageSquare, Plus, Check, AlertCircle } from 'lucide-react';
-import { useProgress } from '../context/ProgressContext';
+import { Award, Briefcase, MessageSquare, Plus, Check, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
-
-const DEFAULT_STORIES = [
-  {
-    name: 'Sarah Jenkins',
-    role: 'Data Scientist @ Google',
-    path: 'Data Scientist Track',
-    quote: 'The structured roadmap kept me focused. The mock interview panel exactly mirrored the questions I faced during my Google technical assessment!',
-    img: '👩‍💻'
-  },
-  {
-    name: 'David Chen',
-    role: 'ML Engineer @ Meta',
-    path: 'ML Engineer Track',
-    quote: 'Being able to verify my project commits directly on GitHub and generate standardized READMEs helped build a portfolio that got me past the recruiters.',
-    img: '🧑‍💻'
-  },
-  {
-    name: 'Amara Okafor',
-    role: 'AI Researcher @ OpenAI',
-    path: 'AI Engineer Track',
-    quote: 'The Forest study timer kept me off social media. I planted 140 virtual trees during my deep work blocks. An absolute game-changer for focus.',
-    img: '👩‍🔬'
-  }
-];
 
 const EMOJIS = ['🧑‍💻', '👩‍💻', '👩‍🔬', '👨‍💼', '🚀', '🎓', '🏆', '🔥'];
 
 export function SuccessStories() {
-  const { progress } = useProgress();
+  const { currentUser } = useAuth();
   const [stories, setStories] = useState([]);
+  const [loadError, setLoadError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
 
   // Form states
@@ -46,37 +23,26 @@ export function SuccessStories() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  // Sync with Firestore collection success_stories with fallback to localStorage
+  // Load stories that real learners have shared (Firestore collection "success_stories").
   useEffect(() => {
-    if (db) {
-      const q = query(collection(db, 'success_stories'), orderBy('timestamp', 'desc'));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const firestoreList = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setStories([...firestoreList, ...DEFAULT_STORIES]);
-      }, (err) => {
-        console.warn('Firestore success stories error:', err);
-        loadLocalStories();
-      });
-      return () => unsubscribe();
-    } else {
-      loadLocalStories();
-    }
+    if (!db) return;
+    const q = query(collection(db, 'success_stories'), orderBy('timestamp', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setStories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoadError('');
+    }, (err) => {
+      console.warn('Firestore success stories error:', err);
+      setLoadError('Could not load stories right now. Please try again later.');
+    });
+    return () => unsubscribe();
   }, []);
-
-  const loadLocalStories = () => {
-    try {
-      const local = JSON.parse(localStorage.getItem('custom-success-stories') || '[]');
-      setStories([...local, ...DEFAULT_STORIES]);
-    } catch (e) {
-      setStories(DEFAULT_STORIES);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      setSubmitError('Please sign in to share your story.');
+      return;
+    }
     if (!formName.trim() || !formRole.trim() || !formQuote.trim()) {
       setSubmitError('Please complete all form fields.');
       return;
@@ -87,24 +53,17 @@ export function SuccessStories() {
     setSubmitSuccess(false);
 
     const newStory = {
-      name: formName.trim(),
-      role: formRole.trim(),
+      authorId: currentUser.uid,
+      name: formName.trim().slice(0, 80),
+      role: formRole.trim().slice(0, 120),
       path: formPath,
-      quote: formQuote.trim(),
+      quote: formQuote.trim().slice(0, 1000),
       img: formEmoji,
       timestamp: Date.now()
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'success_stories'), newStory);
-      } else {
-        // Fallback local storage
-        const currentLocal = JSON.parse(localStorage.getItem('custom-success-stories') || '[]');
-        const updated = [newStory, ...currentLocal];
-        localStorage.setItem('custom-success-stories', JSON.stringify(updated));
-        setStories([...updated, ...DEFAULT_STORIES]);
-      }
+      await addDoc(collection(db, 'success_stories'), newStory);
 
       setSubmitSuccess(true);
       setFormName('');
@@ -131,7 +90,7 @@ export function SuccessStories() {
           </div>
           <div>
             <h2 className="text-3xl font-bold font-display text-text-main">Success Stories</h2>
-            <p className="text-text-dim text-sm mt-0.5">Alumni career transformations using this curriculum path</p>
+            <p className="text-text-dim text-sm mt-0.5">Stories shared by learners using this roadmap (written by them, not verified by us)</p>
           </div>
         </div>
         
@@ -158,6 +117,7 @@ export function SuccessStories() {
               <input
                 type="text"
                 placeholder="e.g. Alex Rivera"
+                maxLength={80}
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 className="w-full bg-bg-main border border-border-line rounded-xl px-3 py-2 text-sm text-text-main focus:outline-none focus:border-phase-gold"
@@ -168,7 +128,8 @@ export function SuccessStories() {
               <label className="text-xs font-bold text-text-dim">Role / Title Obtained</label>
               <input
                 type="text"
-                placeholder="e.g. ML Intern @ Apple"
+                placeholder="e.g. Data Analyst @ a startup"
+                maxLength={120}
                 value={formRole}
                 onChange={(e) => setFormRole(e.target.value)}
                 className="w-full bg-bg-main border border-border-line rounded-xl px-3 py-2 text-sm text-text-main focus:outline-none focus:border-phase-gold"
@@ -217,6 +178,7 @@ export function SuccessStories() {
             <label className="text-xs font-bold text-text-dim">Your Quote / Review</label>
             <textarea
               rows={3}
+              maxLength={1000}
               placeholder="Detail your learning experience, tools used, key study schedules, or interview preparation tips..."
               value={formQuote}
               onChange={(e) => setFormQuote(e.target.value)}
@@ -257,6 +219,22 @@ export function SuccessStories() {
         </form>
       )}
 
+      {loadError && (
+        <div className="flex items-center gap-2 text-phase-brick text-sm"><AlertCircle size={16} /> {loadError}</div>
+      )}
+
+      {/* Empty state: no invented examples, just an invitation */}
+      {stories.length === 0 && !loadError && (
+        <div className="flat-card p-10 border border-dashed border-border-strong text-center space-y-3">
+          <div className="text-4xl">🌱</div>
+          <h3 className="font-display font-bold text-lg text-text-main">No stories yet</h3>
+          <p className="text-sm text-text-dim max-w-md mx-auto">
+            When learners land an internship, a first data job or finish a big project, their stories will appear here.
+            Be the first to share yours!
+          </p>
+        </div>
+      )}
+
       {/* Stories list */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {stories.map((s, idx) => (
@@ -270,12 +248,6 @@ export function SuccessStories() {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-1 text-phase-gold">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={14} fill="currentColor" />
-                ))}
-              </div>
-
               <p className="text-text-main text-[14px] italic leading-relaxed z-10 relative">
                 "{s.quote}"
               </p>
