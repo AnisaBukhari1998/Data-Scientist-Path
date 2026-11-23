@@ -17,7 +17,7 @@ import {
   BrainCircuit, Award, ChevronLeft, ChevronRight,
   Video, Book, Globe, LayoutTemplate, GraduationCap, Trophy,
   Flame, Sparkles, Search, BarChart3, Sliders, Briefcase, Code, MessageSquare, GitFork,
-  Loader2
+  Loader2, Calendar
 } from 'lucide-react';
 import { PHASES } from './data/roadmap';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -52,6 +52,7 @@ const VerifyCertificate = lazy(() => import('./components/VerifyCertificate').th
 const ArchitectureCanvas = lazy(() => import('./components/ArchitectureCanvas').then(m => ({ default: m.ArchitectureCanvas })));
 const Leaderboard = lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
 const GlobalMap = lazy(() => import('./components/GlobalMap').then(m => ({ default: m.GlobalMap })));
+const FiveYearPlan = lazy(() => import('./components/FiveYearPlan').then(m => ({ default: m.FiveYearPlan })));
 const UserProfile = lazy(() => import('./components/UserProfile').then(m => ({ default: m.UserProfile })));
 
 /* ── Fallback shown in the main content area while a lazy route loads ── */
@@ -105,6 +106,7 @@ const CATEGORY_ICONS = {
 const NAV_ITEMS = [
   // 1. Core Study & Curriculum
   { to: '/', icon: BookOpen, label: 'Roadmap', color: 'phase-amber' },
+  { to: '/plan', icon: Calendar, label: '5-Year Plan', color: 'phase-teal' },
   { to: '/skills', icon: Sparkles, label: 'Skill Tree', color: 'phase-brick' },
   { to: '/focus', icon: Clock, label: 'Focus Forest', color: 'phase-teal' },
   { to: '/flashcards', icon: BrainCircuit, label: 'Flashcards', color: 'phase-violet' },
@@ -648,6 +650,7 @@ function AppContent() {
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/map" element={<GlobalMap />} />
               <Route path="/profile" element={<UserProfile />} />
+              <Route path="/plan" element={<FiveYearPlan />} />
             </Routes>
           </Suspense>
         </div>
