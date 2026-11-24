@@ -231,6 +231,7 @@ export const PHASES = [
       ['Google Data Analytics Professional Certificate','Coursera · Google','Audit free', 'https://www.coursera.org/professional-certificates/google-data-analytics', 'Beginner', '120h', 0],
       ['MLOps: Machine Learning Engineering for Production','Coursera · DeepLearning.AI','Audit free', 'https://www.coursera.org/specializations/machine-learning-engineering-for-production-mlops', 'Advanced', '60h', 0],
       ['Excel to MySQL: Analytics for Business','Coursera · Duke University','Audit free', 'https://www.coursera.org/specializations/excel-mysql', 'Advanced', '40h', 0],
+      ['Power BI for Data Analysts','Microsoft Learn — official Power BI docs and free training','Fully free', 'https://learn.microsoft.com/en-us/power-bi/', 'Beginner', '40h', 0],
     ],
     books:[
       ['Storytelling with Data', 'Cole Nussbaumer Knaflic — paid book; borrow free via Open Library or your local library', 'https://openlibrary.org/search?q=Storytelling+with+Data', 'Intermediate', '10h', 0],
@@ -246,6 +247,7 @@ export const PHASES = [
       ['Mock SQL/DS interview walkthroughs','StrataScratch YouTube channel', 'https://www.youtube.com/@stratascratch', 'Intermediate', '20h', 0],
       ['Tableau tutorials playlist','freeCodeCamp', 'https://www.youtube.com/watch?v=aHaOIvR00So', 'Advanced', '8h', 0],
       ['Data Science interview prep playlist','Data Interview Pro', 'https://www.youtube.com/@DataInterviewPro', 'Intermediate', '30h', 0],
+      ['Power BI tutorials (Guy in a Cube)','Guy in a Cube — Power BI tips, DAX and modelling', 'https://www.youtube.com/@GuyInACube', 'Beginner', '15h', 0],
     ],
     websites:[
       ['StrataScratch & DataLemur','Free-tier SQL/DS interview questions', 'https://datalemur.com/', 'Advanced', '40h', 0],

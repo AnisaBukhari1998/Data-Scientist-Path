@@ -8,7 +8,8 @@ import { X, Send, Sparkles, Loader2, LogIn, Mic, MicOff, BookOpen, Layers, FileT
 export function AICopilot() {
   const { currentUser } = useAuth();
   const { progress, setProgress, syncProgress } = useProgress();
-  const [isOpen, setIsOpen] = useState(true);
+  // Start closed: open by default, the panel covered most of the page on phones.
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: 'model',
@@ -228,7 +229,8 @@ Respond ONLY with this exact JSON format:
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    // bottom-24 on phones keeps the button above the bottom menu bar.
+    <div className="fixed bottom-24 md:bottom-6 right-6 z-50">
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
