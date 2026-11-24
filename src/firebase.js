@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getAI, GoogleAIBackend } from "firebase/ai";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
@@ -40,6 +40,13 @@ if (recaptchaSiteKey || import.meta.env.DEV) {
 }
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// For local testing only: `VITE_USE_EMULATORS=true npm run dev` talks to the Firebase
+// emulators on this computer (fake sign-in and database) instead of the real project.
+if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+}
 
 // Initialize Firebase AI Logic (Gemini via Google AI backend — free tier)
 export let ai = null;
