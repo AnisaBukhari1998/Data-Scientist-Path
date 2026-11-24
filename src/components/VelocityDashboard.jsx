@@ -50,19 +50,21 @@ export function VelocityDashboard() {
     const treesPlanted = parseInt(localStorage.getItem('focus-trees') || '0', 10);
     const bookmarks = (progress._bookmarks || []).length;
 
-    // Calculate velocity (items completed / default rate 4 items/week if newly initialized)
-    const weeklyVelocity = Math.max(2.5, completedItems > 0 ? (completedItems / 2) : 4);
+    // Real pace: items completed in the last 28 days (dates saved in _completedAt), per week.
+    // 0 means "date unknown" (completed before dates were recorded); null means un-ticked.
+    const dates = Object.values(progress._completedAt || {}).filter(t => typeof t === 'number' && t > 0);
+    const fourWeeksAgo = Date.now() - 28 * 86400000;
+    const recentCount = dates.filter(t => t >= fourWeeksAgo).length;
+    const weeklyVelocity = recentCount / 4;
     const remainingItems = totalItems - completedItems;
-    const weeksRemaining = Math.ceil(remainingItems / weeklyVelocity);
-    
-    const projectedDate = new Date();
-    projectedDate.setDate(projectedDate.getDate() + (weeksRemaining * 7));
-
-    const formattedProjectedDate = projectedDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    // Only project a finish date when there is a real pace to project from.
+    const weeksRemaining = weeklyVelocity > 0 ? Math.ceil(remainingItems / weeklyVelocity) : null;
+    let formattedProjectedDate = null;
+    if (weeksRemaining !== null) {
+      const projectedDate = new Date();
+      projectedDate.setDate(projectedDate.getDate() + (weeksRemaining * 7));
+      formattedProjectedDate = projectedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
 
     return { 
       totalItems, 
@@ -74,19 +76,27 @@ export function VelocityDashboard() {
       bookmarks,
       weeklyVelocity,
       weeksRemaining,
-      formattedProjectedDate
+      formattedProjectedDate,
+      dates
     };
   }, [progress]);
 
-  /* Simulated weekly data */
+  /* Items completed on each of the last 7 days (today last), from saved completion dates */
   const weekData = useMemo(() => {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const perDay = Math.max(1, Math.floor(stats.completedItems / 7));
-    return days.map((day, i) => ({
-      day,
-      count: Math.min(perDay + Math.floor(Math.random() * 3), stats.completedItems),
-    }));
-  }, [stats.completedItems]);
+    const days = [];
+    for (let back = 6; back >= 0; back--) {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() - back);
+      const end = start.getTime() + 86400000;
+      days.push({
+        day: back === 0 ? 'Today' : start.toLocaleDateString('en-US', { weekday: 'short' }),
+        count: stats.dates.filter(t => t >= start.getTime() && t < end).length,
+      });
+    }
+    return days;
+  }, [stats.dates]);
+  const weekTotal = weekData.reduce((sum, d) => sum + d.count, 0);
 
   const maxWeekCount = Math.max(...weekData.map(d => d.count), 1);
 
@@ -158,17 +168,21 @@ export function VelocityDashboard() {
                 {stats.weeklyVelocity.toFixed(1)} <span className="text-xs font-normal text-text-dim">items / week</span>
               </div>
               <p className="text-xs text-text-dim leading-relaxed">
-                Calculated completion rate based on your studying history. You have <span className="font-bold text-phase-teal">{stats.totalItems - stats.completedItems}</span> items left to study.
+                Items you completed in the last 4 weeks, per week. You have <span className="font-bold text-phase-teal">{stats.totalItems - stats.completedItems}</span> items left to study.
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-4 border-t border-border-line space-y-1">
             <div className="text-[10px] uppercase font-mono text-text-faint font-bold">Estimated Graduation:</div>
-            <div className="text-base font-bold text-phase-teal flex items-center gap-2">
-              {stats.formattedProjectedDate}
-              <span className="text-[10px] font-mono font-normal text-text-faint">({stats.weeksRemaining} weeks)</span>
-            </div>
+            {stats.formattedProjectedDate ? (
+              <div className="text-base font-bold text-phase-teal flex items-center gap-2">
+                {stats.formattedProjectedDate}
+                <span className="text-[10px] font-mono font-normal text-text-faint">({stats.weeksRemaining} weeks at this pace)</span>
+              </div>
+            ) : (
+              <div className="text-xs text-text-dim">Complete a few items this month to see an estimate.</div>
+            )}
           </div>
         </div>
 
@@ -176,24 +190,31 @@ export function VelocityDashboard() {
         <div className="flat-card p-6 border border-border-line animate-slide-up stagger-4">
           <h3 className="text-xs font-mono text-text-faint uppercase tracking-wider mb-6 flex items-center gap-2">
             <TrendingUp size={14} className="text-phase-rose" />
-            Weekly Study Load
+            Last 7 Days
           </h3>
+          {weekTotal === 0 && (
+            <p className="text-xs text-text-dim -mt-4 mb-4">No items completed in the last 7 days. Ticked items will show up here.</p>
+          )}
           <div className="flex items-end justify-between gap-2 h-36">
             {weekData.map((d, i) => (
-              <div key={d.day} className="flex-1 flex flex-col items-center gap-2">
-                <div
-                  className="w-full bg-phase-violet/20 rounded-t-lg transition-all duration-500 min-h-[4px]"
-                  style={{
-                    height: `${(d.count / maxWeekCount) * 100}%`,
-                    animationDelay: `${i * 0.05}s`,
-                  }}
-                >
+              <div key={d.day} className="flex-1 h-full flex flex-col items-center gap-1">
+                {/* Fixed-height track so the bar's percentage height has something to measure against */}
+                <div className="w-full flex-1 flex items-end">
                   <div
-                    className="w-full bg-gradient-to-t from-phase-violet to-phase-rose rounded-t-lg h-full"
-                    style={{ opacity: 0.5 + (d.count / maxWeekCount) * 0.5 }}
-                  />
+                    className="w-full bg-phase-violet/20 rounded-t-lg transition-all duration-500 min-h-[4px]"
+                    style={{
+                      height: `${(d.count / maxWeekCount) * 100}%`,
+                      animationDelay: `${i * 0.05}s`,
+                    }}
+                  >
+                    <div
+                      className="w-full bg-gradient-to-t from-phase-violet to-phase-rose rounded-t-lg h-full"
+                      style={{ opacity: d.count ? 0.5 + (d.count / maxWeekCount) * 0.5 : 0.15 }}
+                    />
+                  </div>
                 </div>
                 <span className="text-[10px] font-mono text-text-faint">{d.day}</span>
+                <span className="text-[10px] font-mono text-text-dim">{d.count}</span>
               </div>
             ))}
           </div>

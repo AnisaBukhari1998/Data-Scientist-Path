@@ -108,6 +108,46 @@ export function ProgressProvider({ children }) {
     return () => window.removeEventListener('online', handleOnline);
   }, [currentUser]);
 
+  // ---------- Completion dates (for real charts on the Analytics page) ----------
+  // _completedAt maps "phaseKey-category-index" to the time it was completed (ms).
+  // Items completed before dates were recorded get 0, meaning "date unknown",
+  // so old progress never shows up as activity on today's date.
+  useEffect(() => {
+    if (loading) return;
+    const CATS = ['courses', 'books', 'videos', 'websites', 'certs', 'projects'];
+    const done = new Set();
+    for (const phase of PHASES) {
+      for (const cat of CATS) {
+        (phase[cat] || []).forEach((_, index) => {
+          const key = `${phase.key}-${cat}-${index}`;
+          if ((progress[phase.key]?.[cat] || []).includes(index) || progress._resourceProgress?.[key] === 100) {
+            done.add(key);
+          }
+        });
+      }
+    }
+    // Un-ticked items are set to null rather than deleted, because progress is saved
+    // with Firestore's merge mode, which never removes keys inside a map.
+    const firstTime = progress._completedAt === undefined;
+    const current = progress._completedAt || {};
+    const next = { ...current };
+    let changed = firstTime;
+    const now = Date.now();
+    for (const key of done) {
+      if (current[key] === undefined || current[key] === null) {
+        next[key] = firstTime ? 0 : now;
+        changed = true;
+      }
+    }
+    for (const key of Object.keys(current)) {
+      if (!done.has(key) && current[key] !== null) {
+        next[key] = null;
+        changed = true;
+      }
+    }
+    if (changed) syncProgress({ ...progress, _completedAt: next });
+  }, [progress, loading, syncProgress]);
+
   // ---------- Granular Progress Tracking ----------
   const getItemProgress = (phaseKey, category, index) => {
     if ((progress[phaseKey]?.[category] || []).includes(index)) {
