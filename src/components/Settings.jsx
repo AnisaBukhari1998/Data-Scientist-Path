@@ -126,11 +126,6 @@ export function Settings() {
     return localStorage.getItem('active-font') || 'inter';
   });
 
-  // Location Privacy state
-  const [privacyLevel, setPrivacyLevel] = useState(() => {
-    return localStorage.getItem('location-privacy') || 'city';
-  });
-
   const [tutorPersonality, setTutorPersonality] = useState(() => {
     return localStorage.getItem('ai-tutor-personality') || 'mentor';
   });
@@ -176,7 +171,6 @@ export function Settings() {
     localStorage.setItem('sound-effects-enabled', String(soundEnabled));
     localStorage.setItem('active-theme', activeTheme);
     localStorage.setItem('active-font', activeFont);
-    localStorage.setItem('location-privacy', privacyLevel);
     localStorage.setItem('ai-tutor-personality', tutorPersonality);
     localStorage.setItem('math-preference', String(mathPref));
 
@@ -445,40 +439,6 @@ export function Settings() {
             }`}
           />
         </button>
-      </div>
-
-      {/* Location Privacy Settings */}
-      <div className="flat-card p-6 border border-border-line space-y-4">
-        <div className="flex items-center gap-3">
-          <Globe className="text-phase-teal" size={24} />
-          <div>
-            <h3 className="font-semibold text-text-main">Map Location Privacy</h3>
-            <p className="text-xs text-text-faint">Select how your location coordinates are saved and displayed on the Peer Map</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-          {[
-            { id: 'city', label: 'City Level' },
-            { id: 'state', label: 'State Level' },
-            { id: 'country', label: 'Country Level' },
-            { id: 'invisible', label: 'Invisible' }
-          ].map(opt => (
-            <button
-              key={opt.id}
-              onClick={() => {
-                playClick();
-                setPrivacyLevel(opt.id);
-              }}
-              className={`p-3 rounded-xl border text-center font-mono font-semibold text-xs cursor-pointer transition-all ${
-                privacyLevel === opt.id
-                  ? 'bg-phase-teal/10 border-phase-teal/45 text-phase-teal'
-                  : 'bg-surface border-border-line hover:bg-bg-raise text-text-dim'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* AI Tutoring Persona Selector */}

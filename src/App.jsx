@@ -49,7 +49,6 @@ const Community = lazy(() => import('./components/Community').then(m => ({ defau
 const PortfolioGenerator = lazy(() => import('./components/PortfolioGenerator').then(m => ({ default: m.PortfolioGenerator })));
 const ArchitectureCanvas = lazy(() => import('./components/ArchitectureCanvas').then(m => ({ default: m.ArchitectureCanvas })));
 const Leaderboard = lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
-const GlobalMap = lazy(() => import('./components/GlobalMap').then(m => ({ default: m.GlobalMap })));
 const FiveYearPlan = lazy(() => import('./components/FiveYearPlan').then(m => ({ default: m.FiveYearPlan })));
 const UserProfile = lazy(() => import('./components/UserProfile').then(m => ({ default: m.UserProfile })));
 
@@ -113,7 +112,6 @@ const NAV_ITEMS = [
   { to: '/capstone', icon: Trophy, label: 'Capstone', color: 'phase-gold' },
 
   // 2. Classrooms & Peer Engagement
-  { to: '/map', icon: Globe, label: 'Peer Map', color: 'phase-teal' },
   { to: '/leaderboard', icon: Trophy, label: 'Rankings', color: 'phase-gold' },
   { to: '/community', icon: MessageSquare, label: 'Community', color: 'phase-violet' },
 
@@ -646,7 +644,6 @@ function AppContent() {
               <Route path="/portfolio" element={<PortfolioGenerator />} />
               <Route path="/architecture" element={<ArchitectureCanvas />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/map" element={<GlobalMap />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/plan" element={<FiveYearPlan />} />
             </Routes>
