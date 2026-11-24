@@ -101,6 +101,32 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
     }
 
+    // Peer study room (Focus Forest). Only the "general_focus" room exists.
+    // presence/{userId}: each signed-in user can write only their own "I'm here" note.
+    // messages/{id}: signed-in users can post as themselves (max 500 characters),
+    // nobody can edit a message, and authors can delete their own.
+    // Times must come from Firebase's clock, so they can't be faked.
+    match /study_rooms/{roomId}/presence/{userId} {
+      allow read: if request.auth != null && roomId == 'general_focus';
+      allow create, update: if request.auth != null && roomId == 'general_focus'
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['name', 'lastSeen'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.lastSeen == request.time;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /study_rooms/{roomId}/messages/{messageId} {
+      allow read: if request.auth != null && roomId == 'general_focus';
+      allow create: if request.auth != null && roomId == 'general_focus'
+        && request.resource.data.keys().hasOnly(['authorId', 'name', 'text', 'createdAt'])
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+        && request.resource.data.createdAt == request.time;
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    }
+
     // Comments on roadmap projects (ProjectComments).
     match /project-comments/{commentId} {
       allow read: if true;
