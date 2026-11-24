@@ -1,10 +1,11 @@
 name: Deploy to Firebase
 
-# Runs only when a tag starting with "deploy-" is pushed (e.g. deploy-2026-11-24),
-# or when started by hand once this file is on the default branch.
-# It deploys whatever commit the tag points to.
+# Runs when a pushed commit's message contains "[deploy]" (on trust-and-cleanup or main),
+# when a tag starting with "deploy-" is pushed, or when started by hand once this file
+# is on the default branch. Ordinary pushes do not deploy.
 on:
   push:
+    branches: [trust-and-cleanup, main]
     tags: ['deploy-*']
   workflow_dispatch:
 
@@ -17,6 +18,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/deploy-') || contains(github.event.head_commit.message, '[deploy]')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
