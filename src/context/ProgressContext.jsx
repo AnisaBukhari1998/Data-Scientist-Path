@@ -721,6 +721,7 @@ export function ProgressProvider({ children }) {
 
   const value = {
     progress,
+    syncProgress, // save progress to the browser and (when signed in) Firestore
     loading,
     toggleItem,
     isCompleted,
