@@ -1,0 +1,61 @@
+name: Deploy to Firebase
+
+# Runs only when a tag starting with "deploy-" is pushed (e.g. deploy-2026-11-24),
+# or when started by hand once this file is on the default branch.
+# It deploys whatever commit the tag points to.
+on:
+  push:
+    tags: ['deploy-*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: npm
+
+    - name: Check the deploy key is set up
+      env:
+        SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      run: |
+        if [ -z "$SA" ]; then
+          echo "::error::Add the FIREBASE_SERVICE_ACCOUNT secret in GitHub (Settings > Secrets and variables > Actions)."
+          exit 1
+        fi
+
+    - name: Install
+      run: npm ci
+      env:
+        ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+
+    - name: Lint
+      run: npm run lint
+
+    - name: Build
+      run: npm run build
+      env:
+        # Optional: repository variable with the reCAPTCHA Enterprise site key for App Check.
+        VITE_RECAPTCHA_SITE_KEY: ${{ vars.VITE_RECAPTCHA_SITE_KEY }}
+
+    - name: Deploy hosting, Firestore rules and indexes
+      env:
+        SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      run: |
+        printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+        export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+        npx -y firebase-tools@15 deploy \
+          --only hosting,firestore:rules,firestore:indexes \
+          --project data-sci-path-v2-543 --non-interactive
+        rm -f "$RUNNER_TEMP/sa.json"
