@@ -276,7 +276,7 @@ function AppContent() {
 
   /* ── Progress ── */
   const location = useLocation();
-  const { progress, activePdf, closePdf } = useProgress();
+  const { progress, loading: progressLoading, activePdf, closePdf } = useProgress();
 
   let totalItems = 0;
   let completedItems = 0;
@@ -671,7 +671,8 @@ function AppContent() {
         phaseTitle="Revive Knowledge Quiz" 
       />
       <AICopilot />
-      <PersonalizationSurvey isOpen={!progress._onboardingCompleted} />
+      {/* Wait until saved progress has loaded, or the survey flashes up for people who already finished it */}
+      <PersonalizationSurvey isOpen={!progressLoading && !progress._onboardingCompleted} />
       <PdfViewerModal pdf={activePdf} onClose={closePdf} />
     </div>
   );
