@@ -787,12 +787,8 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
     setVerifySuccess(false);
     
     try {
-      const headers = {};
-      if (progress._githubUser?.token) {
-        headers['Authorization'] = `token ${progress._githubUser.token}`;
-      }
-      
-      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits`, { headers });
+      // Public repositories can be checked without any token.
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits`);
       if (response.ok) {
         const commits = await response.json();
         const count = Array.isArray(commits) ? commits.length : 0;
@@ -1040,50 +1036,23 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
               ) : (
                 showGithubInput ? (
                   <div className="flex items-center gap-2 flex-wrap bg-bg-raise p-2.5 rounded-xl border border-border-line">
-                    {progress._githubUser ? (
-                      isLoadingRepos ? (
-                        <div className="flex items-center gap-2 text-xs text-text-faint">
-                          <Loader2 size={12} className="animate-spin" /> Loading your repos...
-                        </div>
-                      ) : (
-                        <select
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              handleSaveGithubLink(e.target.value);
-                            }
-                          }}
-                          disabled={isVerifying}
-                          className="text-xs bg-bg-main border border-border-line rounded-md p-1.5 text-text-main focus:outline-none focus:border-phase-violet cursor-pointer max-w-[200px]"
-                        >
-                          <option value="">-- Choose Repository --</option>
-                          {userRepos.map(repo => (
-                            <option key={repo.id} value={repo.html_url}>
-                              {repo.name}
-                            </option>
-                          ))}
-                        </select>
-                      )
-                    ) : (
-                      <input 
-                        type="url" 
-                        placeholder="https://github.com/owner/repo"
-                        value={githubUrlInput}
-                        onChange={(e) => setGithubUrlInput(e.target.value)}
-                        disabled={isVerifying}
-                        className="text-xs bg-bg-main border border-border-line rounded-md px-2.5 py-1 text-text-main focus:outline-none focus:border-phase-amber w-48 sm:w-64"
-                      />
-                    )}
+                    <input
+                      type="url"
+                      placeholder={`https://github.com/${progress._githubUser?.username || 'owner'}/repo`}
+                      value={githubUrlInput}
+                      onChange={(e) => setGithubUrlInput(e.target.value)}
+                      disabled={isVerifying}
+                      className="text-xs bg-bg-main border border-border-line rounded-md px-2.5 py-1 text-text-main focus:outline-none focus:border-phase-amber w-48 sm:w-64"
+                    />
 
-                    {!progress._githubUser && (
-                      <button 
-                        onClick={() => handleSaveGithubLink()}
-                        disabled={isVerifying}
-                        className="p-1.5 text-phase-teal hover:bg-surface rounded-md disabled:opacity-50 cursor-pointer"
-                        title="Verify and Save"
-                      >
-                        {isVerifying ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleSaveGithubLink()}
+                      disabled={isVerifying}
+                      className="p-1.5 text-phase-teal hover:bg-surface rounded-md disabled:opacity-50 cursor-pointer"
+                      title="Verify and Save"
+                    >
+                      {isVerifying ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                    </button>
 
                     <button 
                       onClick={() => { setShowGithubInput(false); setVerifyError(''); }}
@@ -1093,20 +1062,6 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
                       Cancel
                     </button>
 
-                    {/* Manual input toggle for connected users */}
-                    {progress._githubUser && (
-                      <button
-                        onClick={() => {
-                          // temporarily clear token check to type manually
-                          const token = progress._githubUser.token;
-                          disconnectGithub();
-                          setGithubUrlInput('');
-                        }}
-                        className="text-[10px] text-text-faint hover:text-phase-violet underline block w-full mt-1 text-left"
-                      >
-                        Type URL manually instead
-                      </button>
-                    )}
                   </div>
                 ) : (
                   <button 

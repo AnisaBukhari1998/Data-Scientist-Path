@@ -47,28 +47,11 @@ const TYPOGRAPHIES = [
 ];
 
 export function Settings() {
-  const { progress, setGithubUser, disconnectGithub, syncExternalProfiles, setGeminiKey, resetAllProgress } = useProgress();
+  const { progress, setGithubUser, disconnectGithub, syncExternalProfiles, resetAllProgress } = useProgress();
 
-  const [githubPat, setGithubPat] = useState('');
+  const [githubUsername, setGithubUsername] = useState('');
   const [isConnectingGithub, setIsConnectingGithub] = useState(false);
   const [githubError, setGithubError] = useState('');
-
-  const [geminiApiKey, setGeminiApiKey] = useState(progress._geminiApiKey || '');
-
-  useEffect(() => {
-    if (progress._geminiApiKey) {
-      setGeminiApiKey(progress._geminiApiKey);
-    }
-  }, [progress._geminiApiKey]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (geminiApiKey.trim() !== (progress._geminiApiKey || '')) {
-        setGeminiKey(geminiApiKey.trim());
-      }
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [geminiApiKey]);
 
   // Trimmed Platform Configurations for functional portfolio & API tracking
   const PLATFORM_CONFIGS = [
@@ -187,38 +170,32 @@ export function Settings() {
     setReminderTimes(newTimes);
   };
 
+  // Connect by public username: no token is needed or stored.
   const handleConnectGithub = async () => {
     playClick();
-    if (!githubPat.trim()) {
-      setGithubError('Please input a valid Personal Access Token.');
+    const username = githubUsername.trim().replace(/^@/, '');
+    if (!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/.test(username)) {
+      setGithubError('Please enter a valid GitHub username.');
       return;
     }
     setIsConnectingGithub(true);
     setGithubError('');
-
     try {
-      const response = await fetch('https://api.github.com/user', {
-        headers: {
-          Authorization: `token ${githubPat}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Token verification failed.');
-      }
-
+      const response = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}`);
+      if (response.status === 404) throw new Error('not-found');
+      if (!response.ok) throw new Error('unavailable');
       const data = await response.json();
       await setGithubUser({
         username: data.login,
         name: data.name || data.login,
         avatarUrl: data.avatar_url,
-        token: githubPat
       });
-      setGithubPat('');
+      setGithubUsername('');
       playSuccess();
     } catch (err) {
-      console.error(err);
-      setGithubError('Invalid token or connection error. Please verify token permissions.');
+      setGithubError(err.message === 'not-found'
+        ? 'No GitHub account with that username.'
+        : 'Could not reach GitHub right now. Please try again.');
     } finally {
       setIsConnectingGithub(false);
     }
@@ -540,24 +517,18 @@ export function Settings() {
         ) : (
           <div className="space-y-3">
             <p className="text-xs text-text-dim">
-              To verify commits and project repositories, generate a{' '}
-              <a
-                href="https://github.com/settings/tokens?type=beta"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-phase-violet hover:underline font-bold"
-              >
-                GitHub Personal Access Token
-              </a>{' '}
-              with <code className="bg-bg-raise px-1 rounded font-mono">repo</code> permissions and input it below:
+              Enter your GitHub username to show your profile on your portfolio and CV.
+              Only public information is used, and no password or token is needed.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
               <input
-                type="password"
-                placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxx"
-                value={githubPat}
-                onChange={(e) => setGithubPat(e.target.value)}
+                type="text"
+                placeholder="your-github-username"
+                value={githubUsername}
+                onChange={(e) => setGithubUsername(e.target.value)}
+                maxLength={40}
+                autoComplete="off"
                 className="flex-1 bg-bg-main border border-border-line rounded-xl px-4 py-2 text-sm text-text-main focus:outline-none focus:border-phase-violet placeholder:text-text-faint font-mono"
               />
               <button
@@ -566,7 +537,7 @@ export function Settings() {
                 className="bg-phase-violet hover:bg-phase-violet/85 text-white px-5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isConnectingGithub ? <Loader2 size={14} className="animate-spin" /> : null}
-                Verify & Connect
+                Connect
               </button>
             </div>
 

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteField, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
 import { PHASES } from '../data/roadmap';
@@ -549,27 +549,57 @@ export function ProgressProvider({ children }) {
     return currentMilestones.includes(milestoneId);
   }, [progress]);
 
-  // ---------- GitHub Integration ----------
-  const setGithubUser = useCallback(async (githubData) => {
-    const newProgress = {
-      ...progress,
-      _githubUser: githubData
+  // ---------- Really delete saved fields ----------
+  // Progress is saved with Firestore's merge mode, which never removes keys, so removing
+  // a key from the object is not enough. This deletes fields both here and in Firestore.
+  // paths look like '_githubUser' or '_githubUser.token'.
+  const removeProgressFields = useCallback(async (paths) => {
+    const strip = (obj, path) => {
+      const [head, ...rest] = path.split('.');
+      if (!obj || typeof obj !== 'object' || !(head in obj)) return obj;
+      if (rest.length === 0) {
+        const copy = { ...obj };
+        delete copy[head];
+        return copy;
+      }
+      return { ...obj, [head]: strip(obj[head], rest.join('.')) };
     };
-    await syncProgress(newProgress);
+    setProgress(prev => {
+      let next = prev;
+      for (const path of paths) next = strip(next, path);
+      localStorage.setItem('dsp_progress', JSON.stringify(next));
+      return next;
+    });
+    if (currentUser) {
+      const updates = Object.fromEntries(paths.map(path => [`progress.${path}`, deleteField()]));
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), updates);
+      } catch (err) {
+        console.warn('Could not delete saved fields:', err);
+      }
+    }
+  }, [currentUser]);
+
+  // One-time clean-up: older versions saved a GitHub access token and a Gemini API key
+  // in progress. Neither is needed any more, so delete them wherever they still exist.
+  useEffect(() => {
+    if (loading) return;
+    const stale = [];
+    if (progress._geminiApiKey !== undefined) stale.push('_geminiApiKey');
+    if (progress._githubUser && progress._githubUser.token !== undefined) stale.push('_githubUser.token');
+    if (stale.length) removeProgressFields(stale);
+  }, [progress, loading, removeProgressFields]);
+
+  // ---------- GitHub Integration ----------
+  // Only public profile details are stored (username, name, avatar), never a token.
+  const setGithubUser = useCallback(async (githubData) => {
+    const { username, name, avatarUrl } = githubData;
+    await syncProgress({ ...progress, _githubUser: { username, name, avatarUrl } });
   }, [progress, syncProgress]);
 
   const disconnectGithub = useCallback(async () => {
-    const { _githubUser, ...rest } = progress;
-    await syncProgress(rest);
-  }, [progress, syncProgress]);
-
-  const setGeminiKey = useCallback(async (key) => {
-    const newProgress = {
-      ...progress,
-      _geminiApiKey: key
-    };
-    await syncProgress(newProgress);
-  }, [progress, syncProgress]);
+    await removeProgressFields(['_githubUser']);
+  }, [removeProgressFields]);
 
   // ---------- External Profiles Sync ----------
   const syncExternalProfiles = useCallback(async (profiles) => {
@@ -757,7 +787,6 @@ export function ProgressProvider({ children }) {
     // GitHub Integration
     setGithubUser,
     disconnectGithub,
-    setGeminiKey,
     // External Profiles
     syncExternalProfiles,
     // Gamification & Personalization
