@@ -225,22 +225,20 @@ export function Settings() {
   };
 
   const handleSyncProfiles = async () => {
+    // Saves the usernames so they appear as links on your profile and CV.
+    // Nothing is fetched from these sites.
     playClick();
     setIsSyncing(true);
     setSyncSuccess(false);
-
-    setTimeout(async () => {
-      const sanitized = {};
-      PLATFORM_CONFIGS.forEach(plat => {
-        sanitized[plat.key] = (profileState[plat.key] || '').trim();
-      });
-
-      await syncExternalProfiles(sanitized);
-      setIsSyncing(false);
-      setSyncSuccess(true);
-      playSuccess();
-      setTimeout(() => setSyncSuccess(false), 3000);
-    }, 1200);
+    const sanitized = {};
+    PLATFORM_CONFIGS.forEach(plat => {
+      sanitized[plat.key] = (profileState[plat.key] || '').trim();
+    });
+    await syncExternalProfiles(sanitized);
+    setIsSyncing(false);
+    setSyncSuccess(true);
+    playSuccess();
+    setTimeout(() => setSyncSuccess(false), 3000);
   };
 
   const handleResetProgress = async () => {
@@ -579,13 +577,13 @@ export function Settings() {
         )}
       </div>
 
-      {/* Learning Profiles Sync */}
+      {/* Learning profile usernames */}
       <div className="flat-card p-6 border border-border-line space-y-4">
         <div className="flex items-center gap-3">
           <Globe className="text-phase-teal" size={24} />
           <div>
-            <h3 className="font-semibold text-text-main">Learning Profiles Sync</h3>
-            <p className="text-xs text-text-faint">Connect your credentials from all learning resource platforms to synchronize completed milestones automatically</p>
+            <h3 className="font-semibold text-text-main">Learning Profiles</h3>
+            <p className="text-xs text-text-faint">Add your usernames so your profile and CV can link to them. Progress is not imported from these sites; tick items off yourself.</p>
           </div>
         </div>
 
@@ -607,7 +605,7 @@ export function Settings() {
         <div className="flex items-center justify-between pt-2 border-t border-border-line flex-wrap gap-3">
           {syncSuccess ? (
             <div className="flex items-center gap-2 text-phase-teal text-xs font-semibold animate-bounce-in">
-              <Check size={14} /> Profile progress synchronized successfully across all platforms!
+              <Check size={14} /> Usernames saved.
             </div>
           ) : (
             <div />
@@ -619,7 +617,7 @@ export function Settings() {
             className="bg-phase-teal hover:bg-phase-teal/85 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isSyncing ? <Loader2 size={12} className="animate-spin" /> : null}
-            {isSyncing ? 'Syncing Profiles...' : 'Sync External Progress'}
+            {isSyncing ? 'Saving...' : 'Save usernames'}
           </button>
         </div>
       </div>

@@ -353,7 +353,7 @@ export function UserProfile() {
               {trackLabels[track]} Track
             </p>
             <p className="text-xs text-text-faint max-w-sm">
-              Leveling up to become a fully fledged Data Science Architect. Syncing resources and earning XP daily.
+              Working through the roadmap one item at a time and earning XP along the way.
             </p>
           </div>
         </div>
@@ -416,12 +416,12 @@ export function UserProfile() {
             <div className="flex justify-between items-center border-b border-border-line pb-3">
               <div>
                 <h3 className="text-lg font-bold font-display text-text-main flex items-center gap-2">
-                  <Globe size={20} className="text-phase-teal" /> Integrated Learning Profiles
+                  <Globe size={20} className="text-phase-teal" /> Learning Profiles
                 </h3>
-                <p className="text-xs text-text-faint mt-0.5">Platforms linked to sync course completions automatically</p>
+                <p className="text-xs text-text-faint mt-0.5">Usernames you added in Settings, shown as links</p>
               </div>
               <Link to="/settings" className="text-xs font-mono font-bold text-phase-violet hover:underline flex items-center gap-1">
-                Manage accounts <ChevronRight size={14} />
+                Edit usernames <ChevronRight size={14} />
               </Link>
             </div>
 
@@ -456,7 +456,7 @@ export function UserProfile() {
                           <ExternalLink size={10} className="flex-shrink-0" />
                         </>
                       ) : (
-                        <span className="text-text-faint italic text-[9px]">Disconnected</span>
+                        <span className="text-text-faint italic text-[9px]">Not added</span>
                       )}
                     </div>
                   </a>
