@@ -27,7 +27,7 @@ export function Community() {
   const { currentUser } = useAuth();
   const authorName = (currentUser?.displayName || currentUser?.email?.split('@')[0] || 'learner').slice(0, 60);
   const [questions, setQuestions] = useState([]);
-  const [activeAnswers, setActiveAnswers] = useState({});
+  const [activeAnswers, setActiveAnswers] = useState([]); // answers for the open question (a list)
   const [expandedQuestionId, setExpandedQuestionId] = useState(null);
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,9 +64,8 @@ export function Community() {
 
   // Sync Answers for the expanded question in real time
   useEffect(() => {
-    if (!expandedQuestionId) return;
-
-    if (!db) return;
+    setActiveAnswers([]); // don't show the previous question's answers while loading
+    if (!expandedQuestionId || !db) return;
     const q = query(
       collection(db, 'community_answers'),
       where('questionId', '==', expandedQuestionId),
