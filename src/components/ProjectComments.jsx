@@ -4,52 +4,34 @@ import { useAuth } from '../context/AuthContext';
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Send, User, MessageSquare, Loader2, LogIn } from 'lucide-react';
 
-const MOCK_COMMENTS = [
-  { id: 'm1', authorName: 'Alice V.', content: 'Just completed this project! Implementing SGD from scratch really solidified the math for me.', timestamp: { toDate: () => new Date(Date.now() - 3600000 * 2) } },
-  { id: 'm2', authorName: 'Bob K.', content: 'Make sure you double check the derivative formulas before writing the backpropagation loop, had a small sign bug.', timestamp: { toDate: () => new Date(Date.now() - 3600000 * 24) } }
-];
-
 export function ProjectComments({ projectId }) {
   const { currentUser } = useAuth();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [usingMock, setUsingMock] = useState(false);
+  const [error, setError] = useState('');
 
+  // Real comments for this project (Firestore "project-comments").
   useEffect(() => {
     setIsLoading(true);
-    setUsingMock(false);
-
-    try {
-      const q = query(
-        collection(db, 'project-comments'),
-        where('projectId', '==', projectId),
-        orderBy('timestamp', 'asc')
-      );
-
-      const unsubscribe = onSnapshot(q, 
-        (snapshot) => {
-          const list = [];
-          snapshot.forEach((doc) => {
-            list.push({ id: doc.id, ...doc.data() });
-          });
-          setComments(list.length > 0 ? list : MOCK_COMMENTS);
-          setIsLoading(false);
-        },
-        (error) => {
-          console.warn('Firestore fallback: using mock comments.', error);
-          setComments(MOCK_COMMENTS);
-          setUsingMock(true);
-          setIsLoading(false);
-        }
-      );
-
-      return () => unsubscribe();
-    } catch (err) {
-      setComments(MOCK_COMMENTS);
-      setUsingMock(true);
-      setIsLoading(false);
-    }
+    setError('');
+    const q = query(
+      collection(db, 'project-comments'),
+      where('projectId', '==', projectId),
+      orderBy('timestamp', 'asc')
+    );
+    const unsubscribe = onSnapshot(q,
+      (snapshot) => {
+        setComments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setIsLoading(false);
+      },
+      (err) => {
+        console.warn('Could not load comments:', err);
+        setError('Could not load comments right now.');
+        setIsLoading(false);
+      }
+    );
+    return () => unsubscribe();
   }, [projectId]);
 
   const handleSubmit = async (e) => {
@@ -59,30 +41,17 @@ export function ProjectComments({ projectId }) {
     const commentData = {
       projectId,
       authorId: currentUser.uid,
-      authorName: currentUser.displayName || currentUser.email.split('@')[0],
-      content: newComment,
+      authorName: (currentUser.displayName || currentUser.email?.split('@')[0] || 'learner').slice(0, 60),
+      content: newComment.trim().slice(0, 2000),
       timestamp: serverTimestamp()
     };
 
-    setNewComment('');
-
-    if (usingMock) {
-      setComments(prev => [
-        ...prev,
-        {
-          id: Math.random().toString(),
-          authorName: commentData.authorName,
-          content: commentData.content,
-          timestamp: { toDate: () => new Date() }
-        }
-      ]);
-      return;
-    }
-
     try {
       await addDoc(collection(db, 'project-comments'), commentData);
+      setNewComment('');
     } catch (err) {
       console.error('Failed to save comment:', err);
+      setError('Your comment could not be saved. Please try again.');
     }
   };
 
@@ -99,6 +68,10 @@ export function ProjectComments({ projectId }) {
         </div>
       ) : (
         <div className="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+          {error && <p className="text-[11px] text-phase-brick">{error}</p>}
+          {!error && comments.length === 0 && (
+            <p className="text-[11px] text-text-faint text-center py-2">No comments yet. Be the first to share a tip about this project.</p>
+          )}
           {comments.map((c) => (
             <div key={c.id} className="text-xs bg-surface p-3 rounded-lg border border-border-line space-y-1">
               <div className="flex justify-between items-center text-[10px] text-text-faint">
@@ -122,6 +95,7 @@ export function ProjectComments({ projectId }) {
             placeholder="Share an insight or ask a question..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            maxLength={2000}
             className="flex-1 bg-surface border border-border-line rounded-lg px-3 py-1.5 text-xs text-text-main focus:outline-none focus:border-phase-violet focus:ring-1 focus:ring-phase-violet/20"
           />
           <button

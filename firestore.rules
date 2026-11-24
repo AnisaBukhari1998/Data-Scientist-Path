@@ -22,18 +22,122 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Community & Global Leaderboards:
-    // Signed-in users can read all entries, but users can only write/update their own score
+    // Leaderboard: one entry per user, stored under their user ID.
+    // Signed-in users can read all entries. Each user can create, update or delete only their own.
+    // Rules can't recompute anyone's real score (that would need a server), so they keep it believable:
+    //  - only the expected fields, with the right types
+    //  - level must match total XP (level N starts at 50 x N x (N-1) XP)
+    //  - a new entry starts at no more than 20,000 XP
+    //  - XP can grow by at most 10 per minute since the last update (updatedAt is set by Firebase's clock)
+    function validLeaderboardEntry(d) {
+      return d.keys().hasOnly(['name', 'level', 'xp', 'completed', 'updatedAt'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 40
+        && d.level is int && d.level >= 1 && d.level <= 100
+        && d.xp is int && d.xp >= 0
+        && d.xp >= 50 * d.level * (d.level - 1)
+        && d.xp < 50 * d.level * (d.level + 1)
+        && d.completed is int && d.completed >= 0 && d.completed <= 400
+        && d.updatedAt == request.time;
+    }
     match /leaderboards/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && validLeaderboardEntry(request.resource.data)
+        && request.resource.data.xp <= 20000;
+      allow update: if request.auth != null && request.auth.uid == userId
+        && validLeaderboardEntry(request.resource.data)
+        && request.resource.data.xp - resource.data.xp
+           <= (request.time.toMillis() - resource.data.updatedAt.toMillis()) / 6000;
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Community Forum / Posts
-    match /community_posts/{postId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    // Success stories written by learners.
+    // Anyone can read them. Only a signed-in user can add one, under their own ID,
+    // with only the expected fields and reasonable lengths. Authors can delete
+    // their own story; nobody can edit one after it is posted.
+    match /success_stories/{storyId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['authorId', 'name', 'role', 'path', 'quote', 'img', 'timestamp'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
+        && request.resource.data.role is string && request.resource.data.role.size() > 0 && request.resource.data.role.size() <= 120
+        && request.resource.data.path is string && request.resource.data.path.size() <= 40
+        && request.resource.data.quote is string && request.resource.data.quote.size() > 0 && request.resource.data.quote.size() <= 1000
+        && request.resource.data.img is string && request.resource.data.img.size() <= 16
+        && request.resource.data.timestamp is int;
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    }
+
+    // Community Q&A (the Community page). community_posts is not used by the app,
+    // so it has no rule and Firestore denies it by default.
+    // Anyone can read. Only signed-in users can post, under their own ID, with only the
+    // expected fields and length limits. Authors can delete their own posts; no edits.
+    match /community_questions/{questionId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['title', 'content', 'tag', 'author', 'authorId', 'date', 'timestamp', 'answersCount'])
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 150
+        && request.resource.data.content is string && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 3000
+        && request.resource.data.tag is string && request.resource.data.tag.size() <= 30
+        && request.resource.data.author is string && request.resource.data.author.size() <= 60
+        && request.resource.data.date is string && request.resource.data.date.size() <= 20
+        && request.resource.data.timestamp is int
+        && request.resource.data.answersCount == 0;
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    }
+
+    match /community_answers/{answerId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['questionId', 'author', 'authorId', 'content', 'date', 'timestamp'])
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.questionId is string && request.resource.data.questionId.size() <= 100
+        && request.resource.data.content is string && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+        && request.resource.data.author is string && request.resource.data.author.size() <= 60
+        && request.resource.data.date is string && request.resource.data.date.size() <= 20
+        && request.resource.data.timestamp is int;
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    }
+
+    // Peer study room (Focus Forest). Only the "general_focus" room exists.
+    // presence/{userId}: each signed-in user can write only their own "I'm here" note.
+    // messages/{id}: signed-in users can post as themselves (max 500 characters),
+    // nobody can edit a message, and authors can delete their own.
+    // Times must come from Firebase's clock, so they can't be faked.
+    match /study_rooms/{roomId}/presence/{userId} {
+      allow read: if request.auth != null && roomId == 'general_focus';
+      allow create, update: if request.auth != null && roomId == 'general_focus'
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['name', 'lastSeen'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.lastSeen == request.time;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /study_rooms/{roomId}/messages/{messageId} {
+      allow read: if request.auth != null && roomId == 'general_focus';
+      allow create: if request.auth != null && roomId == 'general_focus'
+        && request.resource.data.keys().hasOnly(['authorId', 'name', 'text', 'createdAt'])
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+        && request.resource.data.createdAt == request.time;
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    }
+
+    // Comments on roadmap projects (ProjectComments).
+    match /project-comments/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['projectId', 'authorId', 'authorName', 'content', 'timestamp'])
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.projectId is string && request.resource.data.projectId.size() <= 200
+        && request.resource.data.authorName is string && request.resource.data.authorName.size() <= 60
+        && request.resource.data.content is string && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 2000
+        && request.resource.data.timestamp == request.time;
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
     }
   }
 }

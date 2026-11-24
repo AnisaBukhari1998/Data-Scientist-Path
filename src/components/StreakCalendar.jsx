@@ -4,8 +4,7 @@ import { Flame, Check } from 'lucide-react';
 export function StreakCalendar() {
   const [streak, setStreak] = useState(0);
   
-  // Calculate a fake "streak" based on completed items for demonstration,
-  // or use local storage to track actual daily logins.
+  // Streak = number of days in a row you opened the app (stored in this browser).
   useEffect(() => {
     const lastLogin = localStorage.getItem('dsp_last_login');
     const currentStreak = parseInt(localStorage.getItem('dsp_streak') || '0', 10);

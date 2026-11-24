@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Pause, Square, SkipForward, TreePine, Bell, Calendar, Volume2, VolumeX, Keyboard, RefreshCw, Users, Send } from 'lucide-react';
 import { getCalendarUrl } from '../utils/calendar';
 import { db } from '../firebase';
-import { doc, onSnapshot, updateDoc, arrayUnion, arrayRemove, setDoc, getDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, setDoc, deleteDoc, addDoc, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { playClick, playSuccess, startAmbientSound, stopAmbientSound, setAmbientVolume } from '../utils/audioEngine';
 
@@ -179,96 +179,76 @@ export function FocusTimer() {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
 
-  // Handle room listener registration
+  // ---- Peer study room ----
+  // Firestore layout (see firestore.rules):
+  //   study_rooms/general_focus/presence/{userId}  -> { name, lastSeen }   one per person, refreshed every minute
+  //   study_rooms/general_focus/messages/{id}      -> { authorId, name, text, createdAt }
+  // Each person can only write their own presence and their own messages, and only display
+  // names are shown (never email addresses).
+  const ROOM = 'general_focus';
+  const ONLINE_WINDOW_MS = 2 * 60 * 1000; // "online" = checked in during the last 2 minutes
+  const displayName = (currentUser?.displayName || currentUser?.email?.split('@')[0] || 'learner').slice(0, 40);
+  const [roomError, setRoomError] = useState('');
+
   useEffect(() => {
     if (!inRoom || !db || !currentUser) {
-      if (!inRoom) {
-        setActivePeers([]);
-        setChatMessages([]);
-      }
+      setActivePeers([]);
+      setChatMessages([]);
       return;
     }
+    setRoomError('');
+    const presenceRef = doc(db, 'study_rooms', ROOM, 'presence', currentUser.uid);
 
-    const docRef = doc(db, 'study_rooms', 'general_focus');
-    
-    // Set initial template room doc if not exists
-    const initRoom = async () => {
-      try {
-        const snap = await getDoc(docRef);
-        if (!snap.exists()) {
-          await setDoc(docRef, {
-            active_users: [],
-            messages: []
-          });
-        }
-        
-        // Add ourselves to the active users list
-        const userObj = {
-          email: currentUser.email || 'Anonymous Student',
-          joinedAt: Date.now()
-        };
-        await updateDoc(docRef, {
-          active_users: arrayUnion(userObj)
-        });
-      } catch (err) {
-        console.error("Room init failed:", err);
-      }
-    };
-    initRoom();
+    // Check in now and every minute, so others see us as online.
+    const checkIn = () => setDoc(presenceRef, { name: displayName, lastSeen: serverTimestamp() })
+      .catch(err => { console.error('Study room check-in failed:', err); setRoomError('Could not join the room right now.'); });
+    checkIn();
+    const heartbeat = setInterval(checkIn, 60 * 1000);
 
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setActivePeers(data.active_users || []);
-        setChatMessages(data.messages || []);
-      }
-    }, (err) => {
-      console.warn("Firestore listener error, using local peer room fallback.", err);
-    });
+    // Who is here: everyone who checked in recently.
+    const unsubPresence = onSnapshot(collection(db, 'study_rooms', ROOM, 'presence'), (snap) => {
+      const now = Date.now();
+      setActivePeers(snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p => p.lastSeen && now - p.lastSeen.toMillis() < ONLINE_WINDOW_MS));
+    }, (err) => console.warn('Presence listener error:', err));
 
+    // The 50 most recent messages, shown oldest first.
+    const q = query(collection(db, 'study_rooms', ROOM, 'messages'), orderBy('createdAt', 'desc'), limit(50));
+    const unsubMessages = onSnapshot(q, (snap) => {
+      setChatMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse());
+    }, (err) => { console.warn('Messages listener error:', err); setRoomError('Could not load messages right now.'); });
+
+    // Leaving the room (or closing the page) removes our presence.
+    const leave = () => { deleteDoc(presenceRef).catch(() => {}); };
+    window.addEventListener('beforeunload', leave);
     return () => {
-      unsubscribe();
-      // Remove ourselves from room
-      const leaveRoom = async () => {
-        try {
-          const userObj = {
-            email: currentUser.email || 'Anonymous Student',
-            joinedAt: Date.now()
-          };
-          // Find and filter ourselves out
-          const snap = await getDoc(docRef);
-          if (snap.exists()) {
-            const currentUsers = snap.data().active_users || [];
-            const updated = currentUsers.filter(u => u.email !== currentUser.email);
-            await updateDoc(docRef, {
-              active_users: updated
-            });
-          }
-        } catch (err) {
-          console.error("Failed to leave room clean:", err);
-        }
-      };
-      leaveRoom();
+      clearInterval(heartbeat);
+      unsubPresence();
+      unsubMessages();
+      window.removeEventListener('beforeunload', leave);
+      leave();
     };
+    // displayName is derived from currentUser
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inRoom, currentUser]);
 
   const sendRoomMessage = async (e) => {
     e.preventDefault();
-    const text = chatInput.trim();
+    const text = chatInput.trim().slice(0, 500);
     if (!text || !currentUser || !db) return;
-
     try {
-      const docRef = doc(db, 'study_rooms', 'general_focus');
-      await updateDoc(docRef, {
-        messages: arrayUnion({
-          text,
-          sender: currentUser.email || 'Anonymous Student',
-          timestamp: Date.now()
-        })
+      await addDoc(collection(db, 'study_rooms', ROOM, 'messages'), {
+        authorId: currentUser.uid,
+        name: displayName,
+        text,
+        createdAt: serverTimestamp(),
       });
       setChatInput('');
+      setRoomError('');
     } catch (err) {
-      console.error("Failed to send message:", err);
+      console.error('Failed to send message:', err);
+      setRoomError('Your message could not be sent. Please try again.');
     }
   };
 
@@ -683,24 +663,26 @@ export function FocusTimer() {
                 <div className="space-y-1">
                   <div className="text-[9px] uppercase font-mono font-bold text-text-faint">Active Students:</div>
                   <div className="flex flex-wrap gap-1.5">
-                    {activePeers.map((p, i) => (
-                      <span key={i} className="text-[10px] bg-bg-raise border border-border-line px-2 py-0.5 rounded text-text-dim font-mono">
-                        👤 {p.email.split('@')[0]}
+                    {activePeers.map((p) => (
+                      <span key={p.id} className="text-[10px] bg-bg-raise border border-border-line px-2 py-0.5 rounded text-text-dim font-mono">
+                        👤 {p.name}{p.id === currentUser.uid ? ' (you)' : ''}
                       </span>
                     ))}
                   </div>
                 </div>
+
+                {roomError && <p className="text-[11px] text-phase-brick">{roomError}</p>}
 
                 {/* Chat Log */}
                 <div className="border border-border-line rounded-xl bg-bg-main p-3 h-32 overflow-y-auto space-y-2 text-[11px] font-mono scrollbar-thin">
                   {chatMessages.length === 0 ? (
                     <div className="text-text-faint italic text-center pt-8">No messages. Say hello to your peers!</div>
                   ) : (
-                    chatMessages.map((msg, i) => (
-                      <div key={i} className="space-y-0.5">
+                    chatMessages.map((msg) => (
+                      <div key={msg.id} className="space-y-0.5">
                         <div className="flex justify-between text-[9px] text-text-faint">
-                          <span className="font-bold text-phase-teal">{msg.sender.split('@')[0]}</span>
-                          <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="font-bold text-phase-teal">{msg.name}</span>
+                          <span>{msg.createdAt ? msg.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'sending…'}</span>
                         </div>
                         <p className="text-text-main bg-surface p-1.5 rounded border border-border-line/40">{msg.text}</p>
                       </div>
@@ -713,6 +695,7 @@ export function FocusTimer() {
                   <input
                     type="text"
                     placeholder="Type message..."
+                    maxLength={500}
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     className="flex-1 bg-bg-main border border-border-line rounded-xl px-3 py-2 text-xs focus:outline-none text-text-main"

@@ -2,85 +2,28 @@ import { useState } from 'react';
 import { Target, Lock, CheckCircle2, Award, Zap } from 'lucide-react';
 import { useProgress } from '../context/ProgressContext';
 import { SKILLS_DATA } from '../data/skills';
+import { PHASES } from '../data/roadmap';
 
-// Define layout nodes mapping to the 5 Phases in a neural network layout
+// One circle per roadmap phase (labels match src/data/roadmap.js).
+// dataIdx is the matching entry in SKILLS_DATA.
 const NEURAL_NODES = [
-  {
-    id: 'phase1',
-    layer: 0,
-    label: 'Foundations',
-    subLabel: 'Python & Maths',
-    x: 100,
-    y: 175,
-    color: 'var(--amber)',
-    colorClass: 'text-phase-amber bg-phase-amber/15 border-phase-amber/30',
-    dataIdx: 0
-  },
-  {
-    id: 'phase2',
-    layer: 1,
-    label: 'Core ML',
-    subLabel: 'Data & Stats',
-    x: 300,
-    y: 90,
-    color: 'var(--teal)',
-    colorClass: 'text-phase-teal bg-phase-teal/15 border-phase-teal/30',
-    dataIdx: 1
-  },
-  {
-    id: 'stats-node',
-    layer: 1,
-    label: 'Analytics',
-    subLabel: 'EDA & Insights',
-    x: 300,
-    y: 260,
-    color: 'var(--violet)',
-    colorClass: 'text-phase-violet bg-phase-violet/15 border-phase-violet/30',
-    dataIdx: 1 // shares core details with phase 2
-  },
-  {
-    id: 'phase3',
-    layer: 2,
-    label: 'Deep Learning',
-    subLabel: 'Neural Networks',
-    x: 500,
-    y: 90,
-    color: 'var(--brick)',
-    colorClass: 'text-phase-brick bg-phase-brick/15 border-phase-brick/30',
-    dataIdx: 2
-  },
-  {
-    id: 'phase4',
-    layer: 2,
-    label: 'NLP & Vision',
-    subLabel: 'Language & Images',
-    x: 500,
-    y: 260,
-    color: 'var(--rose)',
-    colorClass: 'text-phase-rose bg-phase-rose/15 border-phase-rose/30',
-    dataIdx: 3
-  },
-  {
-    id: 'phase5',
-    layer: 3,
-    label: 'Deployment',
-    subLabel: 'Production ML',
-    x: 700,
-    y: 175,
-    color: 'var(--gold)',
-    colorClass: 'text-phase-gold bg-phase-gold/15 border-phase-gold/30',
-    dataIdx: 4
-  }
+  { id: 'phase1', layer: 0, label: 'Foundations', subLabel: 'Python, SQL & Stats', x: 100, y: 175,
+    color: 'var(--teal)', colorClass: 'text-phase-teal bg-phase-teal/15 border-phase-teal/30', dataIdx: 0 },
+  { id: 'phase2', layer: 1, label: 'Core ML', subLabel: 'Classical ML', x: 280, y: 175,
+    color: 'var(--amber)', colorClass: 'text-phase-amber bg-phase-amber/15 border-phase-amber/30', dataIdx: 1 },
+  { id: 'phase3', layer: 2, label: 'Deep Learning', subLabel: '& Deployment', x: 470, y: 90,
+    color: 'var(--violet)', colorClass: 'text-phase-violet bg-phase-violet/15 border-phase-violet/30', dataIdx: 2 },
+  { id: 'phase4', layer: 2, label: 'Capstone', subLabel: '& Job Readiness', x: 470, y: 260,
+    color: 'var(--brick)', colorClass: 'text-phase-brick bg-phase-brick/15 border-phase-brick/30', dataIdx: 3 },
+  { id: 'phase5', layer: 3, label: 'AI Engineering', subLabel: 'MLOps & GenAI', x: 680, y: 175,
+    color: 'var(--rose)', colorClass: 'text-phase-rose bg-phase-rose/15 border-phase-rose/30', dataIdx: 4 },
 ];
 
-// Synapses connecting nodes between adjacent layers
+// Lines show what builds on what.
 const SYNAPSES = [
   { from: 'phase1', to: 'phase2' },
-  { from: 'phase1', to: 'stats-node' },
   { from: 'phase2', to: 'phase3' },
   { from: 'phase2', to: 'phase4' },
-  { from: 'stats-node', to: 'phase3' },
-  { from: 'stats-node', to: 'phase4' },
   { from: 'phase3', to: 'phase5' },
   { from: 'phase4', to: 'phase5' }
 ];
@@ -280,7 +223,7 @@ export function SkillTree() {
                 <h2 className="text-xl font-bold font-display text-text-main">{selectedPhaseGroup.title}</h2>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-[10px] font-mono bg-bg-raise border border-border-line text-text-dim px-2 py-0.5 rounded-md uppercase tracking-wider">
-                    {selectedPhaseGroup.months}
+                    {PHASES.find(p => p.key === selectedPhaseGroup.phaseId)?.months}
                   </span>
                   {selectedState.isQuizPassed ? (
                     <span className="text-[10px] font-mono font-bold text-phase-gold bg-phase-gold/10 px-2 py-0.5 rounded-md border border-phase-gold/25 flex items-center gap-1">

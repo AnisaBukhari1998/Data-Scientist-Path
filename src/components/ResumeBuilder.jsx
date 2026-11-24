@@ -387,9 +387,9 @@ export function ResumeBuilder({ onClose }) {
                 )}
               </div>
 
-              {/* Verified Footer */}
+              {/* Footer (the app does not verify anything, so it says "created with") */}
               <div className="mt-8 pt-4 border-t border-slate-200 text-center font-sans text-[8px] text-slate-400">
-                Data Scientist Path verified profile &bull; Created on {new Date().toLocaleDateString()} &bull; ID: {currentUser?.uid || 'ANON_ID'}
+                Created with Data Scientist Path &bull; {new Date().toLocaleDateString()}
               </div>
             </div>
           </div>

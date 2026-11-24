@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 
 /* ── Eager: always-mounted shell chrome + the default "/" landing page ── */
 import { StreakCalendar } from './components/StreakCalendar';
-import { CertificateGenerator } from './components/CertificateGenerator';
 import { ThemeToggle } from './components/ThemeToggle';
 import { CircularProgress } from './components/CircularProgress';
 import { Avatar3D } from './components/Avatar3D';
@@ -48,10 +47,8 @@ const PythonTerminal = lazy(() => import('./components/PythonTerminal').then(m =
 const MasterCapstone = lazy(() => import('./components/MasterCapstone').then(m => ({ default: m.MasterCapstone })));
 const Community = lazy(() => import('./components/Community').then(m => ({ default: m.Community })));
 const PortfolioGenerator = lazy(() => import('./components/PortfolioGenerator').then(m => ({ default: m.PortfolioGenerator })));
-const VerifyCertificate = lazy(() => import('./components/VerifyCertificate').then(m => ({ default: m.VerifyCertificate })));
 const ArchitectureCanvas = lazy(() => import('./components/ArchitectureCanvas').then(m => ({ default: m.ArchitectureCanvas })));
 const Leaderboard = lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
-const GlobalMap = lazy(() => import('./components/GlobalMap').then(m => ({ default: m.GlobalMap })));
 const FiveYearPlan = lazy(() => import('./components/FiveYearPlan').then(m => ({ default: m.FiveYearPlan })));
 const UserProfile = lazy(() => import('./components/UserProfile').then(m => ({ default: m.UserProfile })));
 
@@ -115,7 +112,6 @@ const NAV_ITEMS = [
   { to: '/capstone', icon: Trophy, label: 'Capstone', color: 'phase-gold' },
 
   // 2. Classrooms & Peer Engagement
-  { to: '/map', icon: Globe, label: 'Peer Map', color: 'phase-teal' },
   { to: '/leaderboard', icon: Trophy, label: 'Rankings', color: 'phase-gold' },
   { to: '/community', icon: MessageSquare, label: 'Community', color: 'phase-violet' },
 
@@ -280,7 +276,7 @@ function AppContent() {
 
   /* ── Progress ── */
   const location = useLocation();
-  const { progress, activePdf, closePdf } = useProgress();
+  const { progress, loading: progressLoading, activePdf, closePdf } = useProgress();
 
   let totalItems = 0;
   let completedItems = 0;
@@ -604,14 +600,15 @@ function AppContent() {
 
       {/* ═══════ Bottom Tab Bar (Mobile) ═══════ */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 glass border-t border-border-line flex justify-around py-2 px-1 z-30">
-        {NAV_ITEMS.slice(0, 4).map(({ to, icon: Icon, label, color }) => {
+        {/* First 5 menu items: adding 5-Year Plan would otherwise push Flashcards off the bar */}
+        {NAV_ITEMS.slice(0, 5).map(({ to, icon: Icon, label, color }) => {
           const active = isActiveRoute(to);
           return (
             <Link
               key={to}
               to={to}
               className={`
-                flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200
+                flex flex-col items-center gap-0.5 px-1.5 py-1.5 rounded-xl transition-all duration-200 min-w-0
                 ${active
                   ? `${PHASE_TEXT_COLORS[color] || 'text-text-main'} scale-105`
                   : 'text-text-faint hover:text-text-dim'
@@ -645,10 +642,8 @@ function AppContent() {
               <Route path="/capstone" element={<MasterCapstone />} />
               <Route path="/community" element={<Community />} />
               <Route path="/portfolio" element={<PortfolioGenerator />} />
-              <Route path="/verify" element={<VerifyCertificate />} />
               <Route path="/architecture" element={<ArchitectureCanvas />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/map" element={<GlobalMap />} />
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/plan" element={<FiveYearPlan />} />
             </Routes>
@@ -676,7 +671,8 @@ function AppContent() {
         phaseTitle="Revive Knowledge Quiz" 
       />
       <AICopilot />
-      <PersonalizationSurvey isOpen={!progress._onboardingCompleted} />
+      {/* Wait until saved progress has loaded, or the survey flashes up for people who already finished it */}
+      <PersonalizationSurvey isOpen={!progressLoading && !progress._onboardingCompleted} />
       <PdfViewerModal pdf={activePdf} onClose={closePdf} />
     </div>
   );
@@ -756,7 +752,7 @@ function Roadmap() {
             Welcome back, {currentUser?.displayName || progress._githubUser?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Data Science Scholar')}! 🚀
           </h1>
           <p className="text-sm text-text-dim max-w-xl leading-relaxed">
-            Customize HSL themes, review code models, complete phase challenges, and unlock verified certificates.
+            Customize HSL themes, review code models, complete phase challenges, and build a portfolio of real projects.
           </p>
           <div className="flex flex-wrap gap-3 items-center justify-center md:justify-start">
             <span className="text-xs font-semibold text-phase-violet bg-phase-violet/10 border border-phase-violet/25 px-2.5 py-1 rounded-lg">
@@ -890,11 +886,6 @@ function Roadmap() {
             </Link>
           );
         })}
-      </div>
-
-      {/* Certificate Generator */}
-      <div className="animate-slide-up stagger-6">
-        <CertificateGenerator isCompleted={PHASES.every(p => progress[p.key]?.quizPassed)} />
       </div>
     </div>
   );

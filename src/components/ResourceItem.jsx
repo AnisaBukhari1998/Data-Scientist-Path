@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { ReadmeGenerator } from './ReadmeGenerator';
 import { ProjectComments } from './ProjectComments';
+import { getSameAs } from '../utils/sameAs';
+import { VerdictBadge } from './VerdictBadge';
 
 function getResourceTime(item, type) {
   if (!Array.isArray(item)) return '10h';
@@ -15,91 +17,6 @@ function getResourceTime(item, type) {
   return item[4] || '10h';
 }
 
-function getPlatformForResource(item, type) {
-  if (!Array.isArray(item) || item.length < 4) return null;
-  const host = (item[1] || '').toLowerCase();
-  const url = (item[3] || '').toLowerCase();
-
-  if (host.includes('coursera') || url.includes('coursera.org')) {
-    return { key: 'courseraEmail', label: 'Coursera' };
-  }
-  if (host.includes('edx') || url.includes('edx.org')) {
-    return { key: 'edxUser', label: 'edX' };
-  }
-  if (host.includes('kaggle') || url.includes('kaggle.com')) {
-    return { key: 'kaggleUser', label: 'Kaggle' };
-  }
-  if (host.includes('udemy') || url.includes('udemy.com')) {
-    return { key: 'udemyUser', label: 'Udemy' };
-  }
-  if (host.includes('datacamp') || url.includes('datacamp.com')) {
-    return { key: 'datacampUser', label: 'DataCamp' };
-  }
-  if (host.includes('youtube') || url.includes('youtube.com')) {
-    return { key: 'youtubeUser', label: 'YouTube' };
-  }
-  if (host.includes('medium') || url.includes('medium.com') || host.includes('towards data science')) {
-    return { key: 'mediumUser', label: 'Medium' };
-  }
-  if (host.includes('leetcode') || url.includes('leetcode.com')) {
-    return { key: 'leetcodeUser', label: 'LeetCode' };
-  }
-  if (host.includes('hackerrank') || url.includes('hackerrank.com')) {
-    return { key: 'hackerrankUser', label: 'HackerRank' };
-  }
-  if (host.includes('fast.ai') || url.includes('fast.ai') || host.includes('fastai')) {
-    return { key: 'fastaiUser', label: 'Fast.ai' };
-  }
-  if (host.includes('pluralsight') || url.includes('pluralsight.com')) {
-    return { key: 'pluralsightUser', label: 'Pluralsight' };
-  }
-  if (host.includes('google cloud') || url.includes('cloudskillsboost.google') || host.includes('gcp')) {
-    return { key: 'gcpSkillsUser', label: 'Google Cloud Skills Boost' };
-  }
-  if (host.includes('aws') || url.includes('aws.amazon.com')) {
-    return { key: 'awsUser', label: 'AWS Academy' };
-  }
-  if (host.includes('microsoft learn') || url.includes('learn.microsoft.com') || host.includes('ms learn')) {
-    return { key: 'msLearnUser', label: 'Microsoft Learn' };
-  }
-  if (host.includes('freecodecamp') || url.includes('freecodecamp.org')) {
-    return { key: 'freecodecampUser', label: 'FreeCodeCamp' };
-  }
-  if (host.includes('udacity') || url.includes('udacity.com')) {
-    return { key: 'udacityUser', label: 'Udacity' };
-  }
-  if (host.includes('khan academy') || url.includes('khanacademy.org')) {
-    return { key: 'khanacademyUser', label: 'Khan Academy' };
-  }
-  if (host.includes('hugging face') || url.includes('huggingface.co') || host.includes('huggingface')) {
-    return { key: 'huggingfaceUser', label: 'Hugging Face' };
-  }
-  if (host.includes('datalemur') || url.includes('datalemur.com')) {
-    return { key: 'datalemurUser', label: 'DataLemur' };
-  }
-  if (host.includes('sololearn') || url.includes('sololearn.com')) {
-    return { key: 'sololearnUser', label: 'SoloLearn' };
-  }
-  if (host.includes('sqlzoo') || url.includes('sqlzoo.net')) {
-    return { key: 'sqlzooUser', label: 'SQLZoo' };
-  }
-  if (host.includes('project euler') || url.includes('projecteuler.net')) {
-    return { key: 'projecteulerUser', label: 'Project Euler' };
-  }
-  if (host.includes('elements of ai') || url.includes('elementsofai.com')) {
-    return { key: 'elementsofaiUser', label: 'Elements of AI' };
-  }
-  if (host.includes('deeplearning.ai') || url.includes('deeplearning.ai')) {
-    return { key: 'deeplearningaiUser', label: 'DeepLearning.AI' };
-  }
-  if (host.includes('kodekloud') || url.includes('kodekloud.com')) {
-    return { key: 'kodekloudUser', label: 'KodeKloud' };
-  }
-  if (host.includes('jovian') || url.includes('jovian.com')) {
-    return { key: 'jovianUser', label: 'Jovian' };
-  }
-  return null;
-}
 
 function getSubModulesForResource(type) {
   switch (type) {
@@ -759,9 +676,9 @@ const PROJECT_SPECS = {
 export function ResourceItem({ phaseKey, category, index, item, type }) {
   const { 
     progress, isCompleted, toggleItem, getProjectLink, setProjectLink,
-    toggleBookmark, isBookmarked, setNote, getNote, setResourceLink, getResourceLink,
-    openPdf, getItemProgress, setItemProgress, isSubModuleChecked, toggleSubModule,
-    setProgress
+    toggleBookmark, isBookmarked, setNote, getNote, getResourceLink,
+    openPdf, getItemProgress, isSubModuleChecked, toggleSubModule,
+    syncProgress
   } = useProgress();
 
   const subModules = getSubModulesForResource(type);
@@ -798,119 +715,57 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
   const isVerified = typeof savedLinkData === 'object' && savedLinkData ? savedLinkData.verified : false;
   const commitsCount = typeof savedLinkData === 'object' && savedLinkData ? savedLinkData.commitsCount : null;
 
-  // Platform individual sync configurations
-  const platform = getPlatformForResource(item, type);
-  const savedUsername = platform ? (progress._externalProfiles?.[platform.key] || '') : '';
-  const [isSyncingIndividual, setIsSyncingIndividual] = useState(false);
-  const [syncIndividualSuccess, setSyncIndividualSuccess] = useState(false);
-  const [syncIndividualError, setSyncIndividualError] = useState('');
-
-  const handleIndividualSync = () => {
-    if (!savedUsername) {
-      setSyncIndividualError(`Please link your ${platform.label} credentials in Settings first!`);
-      setTimeout(() => setSyncIndividualError(''), 4000);
-      return;
-    }
-    
-    setIsSyncingIndividual(true);
-    setSyncIndividualError('');
-    setSyncIndividualSuccess(false);
-
-    // Simulate API certificate verification for that username on the platform
-    setTimeout(async () => {
-      setIsSyncingIndividual(false);
-      setSyncIndividualSuccess(true);
-      await setItemProgress(phaseKey, category, index, 100);
-      setTimeout(() => setSyncIndividualSuccess(false), 4000);
-    }, 1200);
-  };
-
   // Resource Verification States
   const [showResourceInput, setShowResourceInput] = useState(false);
   const [resourceUrlInput, setResourceUrlInput] = useState('');
-  const [isVerifyingResource, setIsVerifyingResource] = useState(false);
   const [resourceVerifyError, setResourceVerifyError] = useState('');
   const [resourceVerifySuccess, setResourceVerifySuccess] = useState(false);
 
   const savedResourceData = getResourceLink(phaseKey, category, index);
   const savedResourceUrl = savedResourceData?.url || null;
-  const isResourceVerified = savedResourceData?.verified || false;
 
+  // Save the learner's own certificate link and mark the item complete, in ONE save.
+  // (The old code saved the link, then overwrote progress with an older copy that lacked it.)
+  // The link is not checked with the course provider, so it is never called "verified".
   const handleSaveResourceLink = async () => {
     if (!resourceUrlInput) return;
-    
+    let url;
     try {
-      new URL(resourceUrlInput);
-      setIsVerifyingResource(true);
-      setResourceVerifyError('');
-      setResourceVerifySuccess(false);
-
-      setTimeout(async () => {
-        await setResourceLink(phaseKey, category, index, {
-          url: resourceUrlInput,
-          verified: true
-        });
-
-        // Update progress to 100% completed and mark all sub-modules checked
-        const newProgress = { ...progress };
-        newProgress._resourceProgress = {
-          ...(newProgress._resourceProgress || {}),
-          [`${phaseKey}-${category}-${index}`]: 100
-        };
-
-        newProgress._checkedSubModules = { ...(newProgress._checkedSubModules || {}) };
-        for (let i = 0; i < totalSubModules; i++) {
-          const subKey = `${phaseKey}-${category}-${index}-${i}`;
-          newProgress._checkedSubModules[subKey] = true;
-        }
-
-        const currentPhase = newProgress[phaseKey] || {};
-        const currentCat = currentPhase[category] || [];
-        if (!currentCat.includes(index)) {
-          newProgress[phaseKey] = {
-            ...currentPhase,
-            [category]: [...currentCat, index]
-          };
-        }
-
-        await setProgress(newProgress);
-        localStorage.setItem('dsp_progress', JSON.stringify(newProgress));
-
-        setResourceVerifySuccess(true);
-        setTimeout(() => {
-          setResourceVerifySuccess(false);
-        }, 3000);
-        setIsVerifyingResource(false);
-      }, 600);
-    } catch (e) {
-      setResourceVerifyError('Please enter a valid verification URL.');
+      url = new URL(resourceUrlInput.trim()).href;
+    } catch {
+      setResourceVerifyError('Please enter a valid web address.');
+      return;
     }
+    setResourceVerifyError('');
+    await syncProgress(withResourceLink({ url }, true));
+    setResourceVerifySuccess(true);
+    setTimeout(() => setResourceVerifySuccess(false), 3000);
   };
 
   const handleUnlinkResourceLink = async () => {
-    await setResourceLink(phaseKey, category, index, null);
-    
-    const newProgress = { ...progress };
-    newProgress._resourceProgress = {
-      ...(newProgress._resourceProgress || {}),
-      [`${phaseKey}-${category}-${index}`]: 0
-    };
+    await syncProgress(withResourceLink(null, false));
+  };
 
-    newProgress._checkedSubModules = { ...(newProgress._checkedSubModules || {}) };
-    for (let i = 0; i < totalSubModules; i++) {
-      const subKey = `${phaseKey}-${category}-${index}-${i}`;
-      newProgress._checkedSubModules[subKey] = false;
-    }
-
-    const currentPhase = newProgress[phaseKey] || {};
+  // Build the new progress with this item's link set (or removed) and completion on/off.
+  const withResourceLink = (linkData, complete) => {
+    const currentPhase = progress[phaseKey] || {};
     const currentCat = currentPhase[category] || [];
-    newProgress[phaseKey] = {
-      ...currentPhase,
-      [category]: currentCat.filter(i => i !== index)
+    const checked = { ...(progress._checkedSubModules || {}) };
+    for (let i = 0; i < totalSubModules; i++) {
+      checked[`${phaseKey}-${category}-${index}-${i}`] = complete;
+    }
+    return {
+      ...progress,
+      _resourceProgress: { ...(progress._resourceProgress || {}), [`${phaseKey}-${category}-${index}`]: complete ? 100 : 0 },
+      _checkedSubModules: checked,
+      [phaseKey]: {
+        ...currentPhase,
+        resourceLinks: { ...(currentPhase.resourceLinks || {}), [`${category}-${index}`]: linkData },
+        [category]: complete
+          ? (currentCat.includes(index) ? currentCat : [...currentCat, index])
+          : currentCat.filter(i => i !== index),
+      },
     };
-
-    await setProgress(newProgress);
-    localStorage.setItem('dsp_progress', JSON.stringify(newProgress));
   };
 
   const handleSaveGithubLink = async (customUrl) => {
@@ -1013,6 +868,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
   
   // Calculate estimated study duration dynamically
   const time = getResourceTime(item, type);
+  const sameAs = getSameAs(phaseKey, category, index);
 
   // Parse difficulty based on actual array structure length
   let difficulty = 'Beginner';
@@ -1071,6 +927,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
               ⏱ {time}
             </span>
           )}
+          {type === 'projects' && <VerdictBadge phaseKey={phaseKey} index={index} showTip />}
 
           {/* Note indicator (small icon if note exists but editor is closed) */}
           {existingNote && !showNoteInput && (
@@ -1086,13 +943,21 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
         
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-text-dim">
           <span className="font-medium">{source}</span>
-          {details && (
+          {/* For projects, item[2] is the difficulty, already shown as a badge above */}
+          {details && details !== difficulty && (
             <>
               <span className="hidden sm:inline text-text-faint">•</span>
               <span className="font-mono text-[10.5px] uppercase tracking-wider px-2 py-0.5 bg-bg-raise text-phase-teal rounded-md">{details}</span>
             </>
           )}
         </div>
+
+        {/* Repeated entry: point to the original so it isn't studied twice */}
+        {sameAs && (
+          <p className="mt-1.5 text-xs text-text-dim">
+            <span className="font-semibold text-phase-violet">Same as</span> “{sameAs.title}” ({sameAs.typeLabel}, Phase {sameAs.phaseId}), so there is no need to study it twice.
+          </p>
+        )}
         
         {/* Granular progress bar meter (exclude projects) */}
         {type !== 'projects' && (
@@ -1334,7 +1199,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
                     rel="noopener noreferrer" 
                     className="hover:underline flex items-center gap-1"
                   >
-                    <span>Verified Certificate Linked</span>
+                    <span>Your certificate link</span>
                     <ExternalLink size={10} />
                   </a>
                 </div>
@@ -1349,7 +1214,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
               <div className="bg-bg-raise/30 border border-border-line rounded-xl p-3.5 max-w-sm space-y-2 animate-fade-in">
                 <div className="text-[11px] font-semibold text-text-dim flex items-center gap-1.5">
                   <Award size={13} className="text-text-faint" />
-                  <span>Link Certificate / Verification URL</span>
+                  <span>Add a link to your certificate (optional)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <input
@@ -1357,15 +1222,13 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
                     placeholder="Paste Coursera, edX, or Udemy certificate link..."
                     value={resourceUrlInput}
                     onChange={(e) => setResourceUrlInput(e.target.value)}
-                    disabled={isVerifyingResource}
                     className="flex-1 text-xs bg-surface border border-border-line rounded-md px-2.5 py-1 text-text-main focus:outline-none focus:border-phase-teal focus:ring-1 focus:ring-phase-teal/30"
                   />
                   <button
                     onClick={handleSaveResourceLink}
-                    disabled={isVerifyingResource}
                     className="bg-phase-teal hover:bg-phase-teal/85 text-white px-3.5 py-1 rounded-md text-[11px] font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1 shrink-0"
                   >
-                    {isVerifyingResource ? <Loader2 size={12} className="animate-spin" /> : 'Link'}
+                    Save
                   </button>
                 </div>
                 {resourceVerifyError && (
@@ -1375,7 +1238,7 @@ export function ResourceItem({ phaseKey, category, index, item, type }) {
                 )}
                 {resourceVerifySuccess && (
                   <p className="text-[10px] text-phase-teal font-medium animate-bounce-in">
-                    ✓ Certificate linked successfully!
+                    ✓ Link saved and item marked complete.
                   </p>
                 )}
               </div>

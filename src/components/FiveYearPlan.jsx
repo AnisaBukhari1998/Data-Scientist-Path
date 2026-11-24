@@ -4,6 +4,7 @@ import { Calendar, CheckCircle2, Circle, ChevronDown, ChevronRight, ExternalLink
 import { PHASES } from '../data/roadmap';
 import { PLAN_PERIODS, PLAN_SCHEDULE } from '../data/schedule';
 import { useProgress } from '../context/ProgressContext';
+import { VerdictBadge } from './VerdictBadge';
 
 const CATEGORIES = ['courses', 'books', 'videos', 'websites', 'certs', 'projects'];
 const TYPE_LABELS = {
@@ -183,6 +184,7 @@ export function FiveYearPlan() {
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-raise border border-border-line text-text-faint">
                             {TYPE_LABELS[item.category]}
                           </span>
+                          {item.category === 'projects' && <VerdictBadge phaseKey={item.phase.key} index={item.index} showTip />}
                           {item.plan?.coursera && (
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-phase-gold/15 text-phase-gold font-semibold">
                               Coursera: finish by 10 Apr 2027
@@ -191,7 +193,7 @@ export function FiveYearPlan() {
                         </div>
                         {item.detail && <p className="text-[11px] text-text-faint truncate">{item.detail}</p>}
                         {original && (
-                          <p className="text-[11px] text-text-dim">Repeats “{original.title}”, so it adds no extra study time.</p>
+                          <p className="text-[11px] text-text-dim">Same as “{original.title}”, so it adds no extra study time.</p>
                         )}
                       </div>
                       <div className="text-right shrink-0">

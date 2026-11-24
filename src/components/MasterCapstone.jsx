@@ -806,7 +806,7 @@ Respond ONLY with this exact JSON format:
         </button>
       </div>
 
-      {/* Certification reminder */}
+      {/* Completion message */}
       {percent === 100 && (
         <div className="bg-phase-gold/10 border border-phase-gold/30 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left justify-between animate-bounce-in">
           <div className="space-y-1">
@@ -814,14 +814,14 @@ Respond ONLY with this exact JSON format:
               🏆 Master Capstone Completed!
             </h4>
             <p className="text-xs text-text-dim leading-relaxed">
-              You have completed all milestones for your custom capstone. Head to the Roadmap to claim your certificate!
+              You have completed all milestones for your custom capstone. Add it to your portfolio so employers can see it.
             </p>
           </div>
           <a
-            href="/"
+            href="/portfolio"
             className="flex items-center gap-1.5 bg-phase-gold hover:bg-phase-gold/85 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer whitespace-nowrap"
           >
-            Claim Certificate
+            Add to Portfolio
             <ArrowRight size={14} />
           </a>
         </div>
