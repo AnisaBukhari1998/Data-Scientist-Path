@@ -1,39 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MessageSquare, Plus, Search, ChevronDown, ChevronUp, Send, Check, AlertCircle, HelpCircle, Tag, Clock, ExternalLink, Globe } from 'lucide-react';
+import { Plus, Search, ChevronDown, ChevronUp, Send, Check, AlertCircle, HelpCircle, Tag, Clock, ExternalLink, Globe } from 'lucide-react';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { collection, addDoc, onSnapshot, query, orderBy, where } from 'firebase/firestore';
-
-const DEFAULT_QUESTIONS = [
-  {
-    id: 'q1',
-    title: 'How should I study statistics for Phase 2?',
-    content: 'I find mathematical statistics proofs really heavy. Should I focus on solving equations, or is it okay to just understand descriptive EDA concepts and coding implementations in Pandas?',
-    tag: 'Phase 2',
-    author: 'learner_jane',
-    date: '3 days ago',
-    answersCount: 2
-  },
-  {
-    id: 'q2',
-    title: 'Error setting up Pyodide with Pandas locally',
-    content: 'Im getting a connection timeout when loading Pandas packages inside the browser terminal. Is there a local caching configuration I should change?',
-    tag: 'Phase 6',
-    author: 'terminal_dev',
-    date: '5 days ago',
-    answersCount: 1
-  }
-];
-
-const DEFAULT_ANSWERS = {
-  q1: [
-    { author: 'mentor_bob', content: 'Focus on coding and application! In industry, you rarely write math proofs on paper. Make sure you understand hypothesis testing, A/B limits, and descriptive stats.', date: '2 days ago' },
-    { author: 'sarah_google', content: 'Agreed! Focus on interpreting statistics metrics (p-values, confidence intervals) rather than deriving equations.', date: '1 day ago' }
-  ],
-  q2: [
-    { author: 'admin_root', content: 'Make sure your browser has indexedDB caching enabled. Pyodide relies on indexedDB to store local WebAssembly wheels.', date: '4 days ago' }
-  ]
-};
 
 // SVG branding icons
 const DiscordIcon = (props) => (
@@ -78,63 +47,35 @@ export function Community() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState(false);
 
-  // Sync Questions in real time
+  // Questions posted by real learners (Firestore "community_questions").
+  const [loadError, setLoadError] = useState('');
   useEffect(() => {
-    if (db) {
-      const q = query(collection(db, 'community_questions'), orderBy('timestamp', 'desc'));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const firestoreList = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setQuestions([...firestoreList, ...DEFAULT_QUESTIONS]);
-      }, (err) => {
-        console.warn('Firestore questions load error:', err);
-        loadLocalQuestions();
-      });
-      return () => unsubscribe();
-    } else {
-      loadLocalQuestions();
-    }
+    if (!db) return;
+    const q = query(collection(db, 'community_questions'), orderBy('timestamp', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setQuestions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoadError('');
+    }, (err) => {
+      console.warn('Firestore questions load error:', err);
+      setLoadError('Could not load questions right now. Please try again later.');
+    });
+    return () => unsubscribe();
   }, []);
-
-  const loadLocalQuestions = () => {
-    try {
-      const local = JSON.parse(localStorage.getItem('custom-questions') || '[]');
-      setQuestions([...local, ...DEFAULT_QUESTIONS]);
-    } catch (e) {
-      setQuestions(DEFAULT_QUESTIONS);
-    }
-  };
 
   // Sync Answers for the expanded question in real time
   useEffect(() => {
     if (!expandedQuestionId) return;
 
-    if (expandedQuestionId === 'q1' || expandedQuestionId === 'q2') {
-      setActiveAnswers(DEFAULT_ANSWERS[expandedQuestionId] || []);
-      return;
-    }
-
-    if (db) {
-      const q = query(
-        collection(db, 'community_answers'),
-        where('questionId', '==', expandedQuestionId),
-        orderBy('timestamp', 'asc')
-      );
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const list = snapshot.docs.map(doc => doc.data());
-        setActiveAnswers(list);
-      });
-      return () => unsubscribe();
-    } else {
-      try {
-        const local = JSON.parse(localStorage.getItem(`local-answers-${expandedQuestionId}`) || '[]');
-        setActiveAnswers(local);
-      } catch (e) {
-        setActiveAnswers([]);
-      }
-    }
+    if (!db) return;
+    const q = query(
+      collection(db, 'community_answers'),
+      where('questionId', '==', expandedQuestionId),
+      orderBy('timestamp', 'asc')
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setActiveAnswers(snapshot.docs.map(doc => doc.data()));
+    }, (err) => console.warn('Firestore answers load error:', err));
+    return () => unsubscribe();
   }, [expandedQuestionId]);
 
   const handlePostQuestion = async (e) => {
@@ -164,14 +105,7 @@ export function Community() {
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'community_questions'), questionData);
-      } else {
-        const current = JSON.parse(localStorage.getItem('custom-questions') || '[]');
-        const updated = [questionData, ...current];
-        localStorage.setItem('custom-questions', JSON.stringify(updated));
-        setQuestions([...updated, ...DEFAULT_QUESTIONS]);
-      }
+      await addDoc(collection(db, 'community_questions'), questionData);
 
       setSuccessMsg(true);
       setQTitle('');
@@ -206,14 +140,7 @@ export function Community() {
     };
 
     try {
-      if (db) {
-        await addDoc(collection(db, 'community_answers'), answerData);
-      } else {
-        const current = JSON.parse(localStorage.getItem(`local-answers-${expandedQuestionId}`) || '[]');
-        const updated = [...current, answerData];
-        localStorage.setItem(`local-answers-${expandedQuestionId}`, JSON.stringify(updated));
-        setActiveAnswers(updated);
-      }
+      await addDoc(collection(db, 'community_answers'), answerData);
       setNewAnswerText('');
     } catch (err) {
       console.error('Answer submit error:', err);
@@ -297,11 +224,10 @@ export function Community() {
                   >
                     <option value="General">General</option>
                     <option value="Phase 1">Phase 1 (Python)</option>
-                    <option value="Phase 2">Phase 2 (ML Core)</option>
-                    <option value="Phase 3">Phase 3 (Deep Learning)</option>
-                    <option value="Phase 4">Phase 4 (NLP/CV)</option>
-                    <option value="Phase 5">Phase 5 (Ops)</option>
-                    <option value="Phase 6">Phase 6 (Sandbox)</option>
+                    <option value="Phase 2">Phase 2 (Core ML)</option>
+                    <option value="Phase 3">Phase 3 (Deep Learning &amp; Deployment)</option>
+                    <option value="Phase 4">Phase 4 (Capstone &amp; Jobs)</option>
+                    <option value="Phase 5">Phase 5 (AI Engineering)</option>
                   </select>
                 </div>
               </div>
@@ -378,17 +304,19 @@ export function Community() {
                 <option value="Phase 3">Phase 3</option>
                 <option value="Phase 4">Phase 4</option>
                 <option value="Phase 5">Phase 5</option>
-                <option value="Phase 6">Phase 6</option>
               </select>
             </div>
           </div>
 
           {/* Questions List */}
           <div className="space-y-4">
+            {loadError && (
+              <div className="flex items-center gap-2 text-phase-brick text-sm"><AlertCircle size={16} /> {loadError}</div>
+            )}
             {filteredQuestions.length === 0 ? (
               <div className="p-12 text-center animate-fade-in border border-border-line rounded-2xl bg-surface">
                 <div className="text-5xl mb-3">💬</div>
-                <p className="text-text-dim font-semibold">No questions found</p>
+                <p className="text-text-dim font-semibold">{questions.length === 0 ? 'No questions yet' : 'No questions match your search'}</p>
                 <p className="text-text-faint text-sm mt-1">Be the first to post a question for this topic!</p>
               </div>
             ) : (
@@ -491,14 +419,11 @@ export function Community() {
               </div>
               <div>
                 <h3 className="font-bold text-text-main text-sm font-display">Discord Community</h3>
-                <span className="text-[10px] text-phase-teal font-mono font-bold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-phase-teal rounded-full animate-pulse" />
-                  1,420 members online
-                </span>
+                <span className="text-[10px] text-text-faint font-mono">Public server, not run by this app</span>
               </div>
             </div>
             <p className="text-xs text-text-dim leading-relaxed">
-              Join active voice channels, coordinate study sessions, and ask live debugging queries with student mentors.
+              A large public data science Discord where you can ask questions and find study partners.
             </p>
             <a
               href="https://discord.gg/datascience"
@@ -522,7 +447,7 @@ export function Community() {
               </div>
             </div>
             <p className="text-xs text-text-dim leading-relaxed">
-              Submit pull requests, review roadmap markdown resources, and see what repository templates other students are hosting.
+              Browse open-source data science projects and discussions on GitHub.
             </p>
             <a
               href={githubDiscussionsUrl}
