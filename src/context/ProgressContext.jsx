@@ -3,6 +3,7 @@ import { doc, getDoc, setDoc, updateDoc, deleteField, onSnapshot } from 'firebas
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
 import { PHASES } from '../data/roadmap';
+import { isAccountDeletionInProgress } from '../utils/accountDeletion';
 
 const ProgressContext = createContext();
 
@@ -49,8 +50,7 @@ export function ProgressProvider({ children }) {
       if (docSnap.exists()) {
         setProgress(docSnap.data().progress || {});
       } else {
-        // If document doesn't exist, create it with empty progress
-        setDoc(docRef, { progress: {} }, { merge: true });
+        // No saved progress yet: start empty. The document is created on the first save.
         setProgress({});
       }
       setLoading(false);
@@ -64,6 +64,7 @@ export function ProgressProvider({ children }) {
 
   // ---------- Sync helper with Offline Caching & Auto-Sync ----------
   const syncProgress = useCallback(async (newProgress) => {
+    if (isAccountDeletionInProgress()) return; // the account is being deleted: save nothing
     setProgress(newProgress);
     
     // Always store in localStorage as a backup cache
@@ -85,7 +86,7 @@ export function ProgressProvider({ children }) {
   useEffect(() => {
     const handleOnline = async () => {
       const needsSync = localStorage.getItem('dsp_needs_sync') === 'true';
-      if (needsSync && currentUser) {
+      if (needsSync && currentUser && !isAccountDeletionInProgress()) {
         try {
           const localData = localStorage.getItem('dsp_progress');
           if (localData) {

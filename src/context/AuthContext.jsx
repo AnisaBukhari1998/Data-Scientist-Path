@@ -5,12 +5,12 @@ import {
   signInWithRedirect,
   GoogleAuthProvider, 
   signOut,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  updateProfile
+  reauthenticateWithPopup,
+  deleteUser
 } from 'firebase/auth';
 import { auth } from '../firebase';
+import { deleteUserData } from '../utils/deleteUserData';
+import { setAccountDeletionInProgress } from '../utils/accountDeletion';
 
 const AuthContext = createContext();
 
@@ -35,24 +35,24 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function signupWithEmail(email, password, displayName) {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) {
-      await updateProfile(result.user, { displayName });
-    }
-    return result;
-  }
-
-  function loginWithEmail(email, password) {
-    return signInWithEmailAndPassword(auth, email, password);
-  }
-
-  function resetPassword(email) {
-    return sendPasswordResetEmail(auth, email);
-  }
-
   function logout() {
     return signOut(auth);
+  }
+
+  // Permanently delete the account and everything the app stores for it.
+  // Firebase only allows this right after signing in, so we ask Google to confirm first.
+  async function deleteAccount() {
+    const user = auth.currentUser;
+    if (!user) return;
+    await reauthenticateWithPopup(user, new GoogleAuthProvider());
+    setAccountDeletionInProgress(true); // stop the app saving progress while we delete it
+    try {
+      await deleteUserData(user.uid);
+      await deleteUser(user);
+      localStorage.clear(); // progress and settings saved in this browser
+    } finally {
+      setAccountDeletionInProgress(false);
+    }
   }
 
   useEffect(() => {
@@ -67,10 +67,8 @@ export function AuthProvider({ children }) {
   const value = {
     currentUser,
     loginWithGoogle,
-    loginWithEmail,
-    signupWithEmail,
-    resetPassword,
-    logout
+    logout,
+    deleteAccount
   };
 
   return (

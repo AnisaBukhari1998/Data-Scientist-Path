@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell, Shield, Trash2, Sliders, Volume2, Save, Sparkles, CheckCircle, Loader2, Globe, Check, Palette, Type } from 'lucide-react';
 import { TrackSelector } from './TrackSelector';
 import { useProgress } from '../context/ProgressContext';
+import { useAuth } from '../context/AuthContext';
 import { playClick, playSuccess } from '../utils/audioEngine';
 
 const DEFAULT_TIMES = ['09:00', '13:00', '17:00', '21:00'];
@@ -48,6 +49,25 @@ const TYPOGRAPHIES = [
 
 export function Settings() {
   const { progress, setGithubUser, disconnectGithub, syncExternalProfiles, resetAllProgress } = useProgress();
+  const { currentUser, deleteAccount } = useAuth();
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    setDeleteError('');
+    try {
+      await deleteAccount();
+      window.location.assign('/');
+    } catch (err) {
+      console.error('Account deletion failed:', err);
+      setDeleteError(err.code === 'auth/popup-closed-by-user'
+        ? 'Deletion cancelled: please confirm with Google to delete your account.'
+        : 'Your account could not be deleted. Please try again.');
+      setIsDeleting(false);
+    }
+  };
 
   const [githubUsername, setGithubUsername] = useState('');
   const [isConnectingGithub, setIsConnectingGithub] = useState(false);
@@ -623,7 +643,7 @@ export function Settings() {
           <Shield className="text-phase-brick" size={24} />
           <div>
             <h3 className="font-semibold text-phase-brick">Danger Zone</h3>
-            <p className="text-xs text-text-faint">Actions that affect all local datasets and logs</p>
+            <p className="text-xs text-text-faint">Actions that permanently remove your data</p>
           </div>
         </div>
         <button
@@ -633,6 +653,36 @@ export function Settings() {
           <Trash2 size={14} />
           Reset All Roadmap Progress
         </button>
+
+        {currentUser && (
+          <div className="border-t border-phase-brick/20 pt-4 space-y-2">
+            <h4 className="font-semibold text-sm text-text-main">Delete my account</h4>
+            <p className="text-xs text-text-dim">
+              Permanently deletes your account, progress, leaderboard entry and everything you posted
+              (stories, questions, answers, comments and study-room messages). This cannot be undone.
+              Google will ask you to confirm it's you.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                aria-label="Type DELETE to confirm"
+                className="flex-1 bg-bg-main border border-border-line rounded-xl px-3 py-2 text-xs text-text-main focus:outline-none focus:border-phase-brick"
+              />
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirm !== 'DELETE' || isDeleting}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-phase-brick hover:bg-phase-brick/80 text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                Delete my account
+              </button>
+            </div>
+            {deleteError && <p className="text-xs text-phase-brick font-semibold">{deleteError}</p>}
+          </div>
+        )}
       </div>
     </div>
   );

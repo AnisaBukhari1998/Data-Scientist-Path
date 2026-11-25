@@ -12,7 +12,7 @@ import { SearchModal } from './components/SearchModal';
 import { OnboardingTutorial } from './components/OnboardingTutorial';
 import { DailyChallenge } from './components/DailyChallenge';
 import {
-  BookOpen, Clock, Target, Menu, X, LogIn, LogOut, User, UserPlus,
+  BookOpen, Clock, Target, Menu, X, LogIn, LogOut, User,
   BrainCircuit, Award, ChevronLeft, ChevronRight,
   Video, Book, Globe, LayoutTemplate, GraduationCap, Trophy,
   Flame, Sparkles, Search, BarChart3, Sliders, Briefcase, Code, MessageSquare, GitFork,
@@ -428,22 +428,13 @@ function AppContent() {
                   <LogIn size={18} />
                 </button>
               ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setIsLoginModalOpen(true)}
-                    className="flex-1 px-3 py-2 text-xs font-semibold rounded-xl bg-phase-violet/10 hover:bg-phase-violet/20 text-phase-violet border border-phase-violet/20 hover:border-phase-violet/40 transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <LogIn size={14} />
-                    <span>Sign In</span>
-                  </button>
-                  <button
-                    onClick={() => setIsLoginModalOpen(true)}
-                    className="flex-1 px-3 py-2 text-xs font-semibold rounded-xl bg-phase-amber/15 hover:bg-phase-amber/25 text-phase-amber border border-phase-amber/20 hover:border-phase-amber/40 transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <UserPlus size={14} />
-                    <span>Sign Up</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="w-full px-3 py-2 text-xs font-semibold rounded-xl bg-phase-violet/10 hover:bg-phase-violet/20 text-phase-violet border border-phase-violet/20 hover:border-phase-violet/40 transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <LogIn size={14} />
+                  <span>Sign in with Google</span>
+                </button>
               )
             )}
           </div>
