@@ -20,6 +20,12 @@ jobs:
   deploy:
     if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/deploy-') || contains(github.event.head_commit.message, '[deploy]')
     runs-on: ubuntu-latest
+    # Uses the "production" environment (Settings > Environments). Keep the
+    # FIREBASE_SERVICE_ACCOUNT secret there and add yourself as a required reviewer,
+    # so every deploy waits for your approval.
+    environment:
+      name: production
+      url: https://data-sci-path-v2-543.web.app
     steps:
     - uses: actions/checkout@v4
 

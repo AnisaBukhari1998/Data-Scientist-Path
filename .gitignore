@@ -26,3 +26,18 @@ dist/
 dist_electron/
 dist/
 dist_electron/
+
+# Firebase local files (deploy cache, emulator logs)
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Never commit keys or credentials
+.env
+.env.*
+!.env.example
+*service-account*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.p12
