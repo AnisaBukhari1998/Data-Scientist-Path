@@ -29,6 +29,5 @@ npm run lint
 npm run build
 ```
 
-Desktop builds use Electron: `npm run electron:dev`, `npm run electron:build` (macOS), `npm run electron:build:win`.
 
 Authentication, sync and the AI tutor use Firebase (see `src/firebase.js`, `firestore.rules`).

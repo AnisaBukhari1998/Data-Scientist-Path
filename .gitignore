@@ -23,9 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 dist/
-dist_electron/
 dist/
-dist_electron/
 
 # Firebase local files (deploy cache, emulator logs)
 .firebase/
