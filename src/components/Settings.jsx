@@ -598,8 +598,8 @@ export function Settings() {
         <div className="flex items-center gap-3">
           <Sparkles className="text-phase-amber" size={24} />
           <div>
-            <h3 className="font-semibold text-text-main">Diagnostics & Onboarding</h3>
-            <p className="text-xs text-text-faint">Relaunch onboarding guides or simulate inactive periods for testing</p>
+            <h3 className="font-semibold text-text-main">Guided Tour</h3>
+            <p className="text-xs text-text-faint">Replay the short guided tour of the app</p>
           </div>
         </div>
 
@@ -613,28 +613,6 @@ export function Settings() {
             className="px-4 py-2 rounded-xl text-xs font-bold bg-phase-violet/10 text-phase-violet hover:bg-phase-violet/20 transition-colors cursor-pointer"
           >
             Relaunch Onboarding Tutorial
-          </button>
-          
-          <button
-            onClick={() => {
-              playClick();
-              localStorage.setItem('last-visit-date', new Date(Date.now() - 7 * 86400000).toISOString());
-              window.location.reload();
-            }}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-phase-teal/10 text-phase-teal hover:bg-phase-teal/20 transition-colors cursor-pointer"
-          >
-            Simulate 7-Day Inactivity (Warmup)
-          </button>
-
-          <button
-            onClick={() => {
-              playClick();
-              localStorage.setItem('last-visit-date', new Date(Date.now() - 16 * 86400000).toISOString());
-              window.location.reload();
-            }}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-phase-amber/10 text-phase-amber hover:bg-phase-amber/20 transition-colors cursor-pointer"
-          >
-            Simulate 15-Day Inactivity (Revive Quiz)
           </button>
         </div>
       </div>

@@ -669,22 +669,6 @@ export function ProgressProvider({ children }) {
     await syncProgress(newProgress);
   }, [progress, syncProgress]);
 
-  // ---------- Personalization Onboarding ----------
-  const savePersonalization = useCallback(async (data) => {
-    const newProgress = {
-      ...progress,
-      _onboardingCompleted: true,
-      _studyIntensity: data.studyIntensity || 'serious',
-      _targetIndustry: data.targetIndustry || 'tech',
-      _mathPreference: data.mathPreference !== undefined ? data.mathPreference : true,
-      _aiTutorPersonality: data.aiTutorPersonality || 'mentor',
-      _customHsl: data.customHsl || { h: 250, s: 70, l: 60 },
-      _reminderTimes: data.reminderTimes || ['09:00', '17:00'],
-      _xp: progress._xp || 50 // Give 50 XP welcome bonus!
-    };
-    await syncProgress(newProgress);
-  }, [progress, syncProgress]);
-
   // ---------- Daily Quests ----------
   const completeQuest = useCallback(async (id) => {
     const currentQuests = progress._quests || [
@@ -793,7 +777,6 @@ export function ProgressProvider({ children }) {
     addXp,
     buyStreakFreeze,
     saveHslTheme,
-    savePersonalization,
     completeQuest,
     // PDF Viewer
     activePdf,

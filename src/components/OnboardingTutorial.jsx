@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Sparkles, BookOpen, Clock, BrainCircuit, ArrowRight, X } from 'lucide-react';
+import { useState } from 'react';
+import { BookOpen, Clock, BrainCircuit, ArrowRight, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const STEPS = [
@@ -137,84 +137,6 @@ export function OnboardingTutorial({ onComplete }) {
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Warmup & Revive Suggestion (shows if inactive > 7 or 15 days) ─── */
-export function WarmupSuggestion({ onDismiss, onStartReviveQuiz, daysInactive = 0 }) {
-  const isRevive = daysInactive >= 15;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-surface rounded-2xl p-8 max-w-md w-full border border-border-line shadow-2xl animate-scale-in text-center relative">
-        <button
-          onClick={onDismiss}
-          className="absolute top-4 right-4 text-text-faint hover:text-text-main p-1"
-          aria-label="Dismiss"
-        >
-          <X size={20} />
-        </button>
-
-        {isRevive ? (
-          <>
-            <div className="text-5xl mb-4">⚡️</div>
-            <h2 className="text-2xl font-display font-bold text-text-main mb-2">Revive Your Knowledge!</h2>
-            <p className="text-text-dim mb-6 leading-relaxed">
-              It's been <span className="font-bold text-phase-amber">{daysInactive} days</span> since your last session. Let's run a quick 10-question refresher quiz to revive your memory!
-            </p>
-
-            <div className="space-y-3">
-              <button
-                onClick={onStartReviveQuiz}
-                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-phase-amber hover:bg-phase-amber/90 text-white font-bold transition-all shadow-md cursor-pointer"
-              >
-                <Sparkles size={18} />
-                Start Revive Quiz
-              </button>
-              <button
-                onClick={onDismiss}
-                className="text-sm text-text-faint hover:text-text-dim transition-colors mt-2"
-              >
-                Skip quiz and continue
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="text-5xl mb-4">👋</div>
-            <h2 className="text-2xl font-display font-bold text-text-main mb-2">Welcome Back!</h2>
-            <p className="text-text-dim mb-6">
-              It's been a week! How about a quick warm-up to get back into the groove?
-            </p>
-
-            <div className="space-y-3">
-              <Link
-                to="/flashcards"
-                onClick={onDismiss}
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-phase-violet/10 text-phase-violet font-semibold hover:bg-phase-violet/20 transition-colors"
-              >
-                <BrainCircuit size={18} />
-                Quick Flashcard Review
-              </Link>
-              <Link
-                to="/focus"
-                onClick={onDismiss}
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-phase-teal/10 text-phase-teal font-semibold hover:bg-phase-teal/20 transition-colors"
-              >
-                <Clock size={18} />
-                15-min Focus Session
-              </Link>
-              <button
-                onClick={onDismiss}
-                className="text-sm text-text-faint hover:text-text-dim transition-colors"
-              >
-                Skip for now
-              </button>
-            </div>
-          </>
-        )}
       </div>
     </div>
   );

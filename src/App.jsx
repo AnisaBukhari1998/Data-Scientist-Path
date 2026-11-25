@@ -9,7 +9,7 @@ import { Avatar3D } from './components/Avatar3D';
 import { ParticleBackground } from './components/ParticleBackground';
 import { LevelUpOverlay } from './components/LevelUpOverlay';
 import { SearchModal } from './components/SearchModal';
-import { OnboardingTutorial, WarmupSuggestion } from './components/OnboardingTutorial';
+import { OnboardingTutorial } from './components/OnboardingTutorial';
 import { DailyChallenge } from './components/DailyChallenge';
 import {
   BookOpen, Clock, Target, Menu, X, LogIn, LogOut, User, UserPlus,
@@ -22,11 +22,9 @@ import { PHASES } from './data/roadmap';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProgressProvider, useProgress } from './context/ProgressContext';
 import { LoginModal } from './components/LoginModal';
-import { QuizModal } from './components/QuizModal';
 import { TRACKS } from './components/TrackSelector';
 import { AICopilot } from './components/AICopilot';
 import { MascotWidget } from './components/MascotWidget';
-import { PersonalizationSurvey } from './components/PersonalizationSurvey';
 import { AppLogo } from './components/AppLogo';
 import { ProjectProgressTracker } from './components/ProjectProgressTracker';
 import { PdfViewerModal } from './components/PdfViewerModal';
@@ -214,26 +212,6 @@ function AppContent() {
     return !localStorage.getItem('onboarding-completed');
   });
 
-  /* ── Warmup suggestion (7+ days inactive) ── */
-  const [isReviveQuizOpen, setIsReviveQuizOpen] = useState(false);
-  const [daysInactive, setDaysInactive] = useState(() => {
-    const lastVisit = localStorage.getItem('last-visit-date');
-    if (!lastVisit) return 0;
-    return Math.floor((Date.now() - new Date(lastVisit).getTime()) / 86400000);
-  });
-
-  const [showWarmup, setShowWarmup] = useState(() => {
-    const lastVisit = localStorage.getItem('last-visit-date');
-    if (!lastVisit) return false;
-    const daysSince = (Date.now() - new Date(lastVisit).getTime()) / 86400000;
-    return daysSince >= 7;
-  });
-
-  useEffect(() => {
-    // Only update if not currently showing warmup/revive options, to allow testing refreshes
-    localStorage.setItem('last-visit-date', new Date().toISOString());
-  }, []);
-
   /* ── Cmd+K shortcut ── */
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -276,7 +254,7 @@ function AppContent() {
 
   /* ── Progress ── */
   const location = useLocation();
-  const { progress, loading: progressLoading, activePdf, closePdf } = useProgress();
+  const { progress, activePdf, closePdf } = useProgress();
 
   let totalItems = 0;
   let completedItems = 0;
@@ -654,25 +632,7 @@ function AppContent() {
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       {showOnboarding && <OnboardingTutorial onComplete={() => setShowOnboarding(false)} />}
-      {showWarmup && (
-        <WarmupSuggestion 
-          onDismiss={() => setShowWarmup(false)} 
-          daysInactive={daysInactive}
-          onStartReviveQuiz={() => {
-            setShowWarmup(false);
-            setIsReviveQuizOpen(true);
-          }}
-        />
-      )}
-      <QuizModal 
-        isOpen={isReviveQuizOpen} 
-        onClose={() => setIsReviveQuizOpen(false)} 
-        phaseKey="revive" 
-        phaseTitle="Revive Knowledge Quiz" 
-      />
       <AICopilot />
-      {/* Wait until saved progress has loaded, or the survey flashes up for people who already finished it */}
-      <PersonalizationSurvey isOpen={!progressLoading && !progress._onboardingCompleted} />
       <PdfViewerModal pdf={activePdf} onClose={closePdf} />
     </div>
   );
