@@ -1,0 +1,44 @@
+name: Tests
+
+# Runs the Firestore rules tests and the browser tests against the local Firebase
+# emulators on every pull request and every push to main. Never touches the real project.
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: npm
+
+    # The Firebase emulators need Java.
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '21'
+
+    - name: Cache Firebase emulators
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/firebase/emulators
+        key: firebase-emulators-${{ hashFiles('package-lock.json') }}
+
+    - name: Install
+      run: npm ci
+
+    - name: Install browser for tests
+      run: npx playwright install --with-deps chromium
+
+    - name: Run tests
+      run: npm test

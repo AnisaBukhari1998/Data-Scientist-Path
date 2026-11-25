@@ -27,7 +27,11 @@ npm install
 npm run dev       # http://localhost:5173
 npm run lint
 npm run build
+npm test          # Firestore rules + browser tests against the local Firebase emulators (needs Java)
 ```
+
+`npm test` never touches the real Firebase project. To try the app against the emulators by hand, run
+`npx firebase emulators:start --only auth,firestore` and, in another terminal, `VITE_USE_EMULATORS=true npm run dev`.
 
 
 Authentication, sync and the AI tutor use Firebase (see `src/firebase.js`, `firestore.rules`).
